@@ -57,4 +57,17 @@ public class Store {
         this.status = status;
         this.createdAt = createdAt;
     }
+
+    public void update(String name, String address, String phoneNumber, Integer minOrderAmount, StoreStatus status){
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.minOrderAmount = minOrderAmount;
+        this.status = status;
+    }
+
+    public void delete() {
+        this.status = StoreStatus.DELETE;
+    }
+
 }

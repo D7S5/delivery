@@ -54,7 +54,7 @@ public class StoreService {
     public ApiResponse<StoreDetailResponse> getStoreDetail(Long storeId) {
         Store store = getStore(storeId);
 
-        List<MenuResponse> menus = menuRepository.findByStoreId(storeId)
+        List<MenuResponse> menus = menuRepository.findByStoreIdAndDeletedFalse(storeId)
                 .stream()
                 .map(MenuResponse::from)
                 .toList();
@@ -65,6 +65,58 @@ public class StoreService {
         );
 
         return new ApiResponse<>(true, response, "가게 상세 조회 성공");
+    }
+
+    @Transactional
+    public ApiResponse<StoreResponse> updateStore(Long storeId, Long ownerId, String role, UpdateStoreRequest request) {
+        validateOwner(role);
+
+        Store store = getStore(storeId);
+        validateStoreOwner(store, ownerId);
+
+        if (request.status() == StoreStatus.DELETE) {
+            throw new IllegalArgumentException("삭제는 삭제 API를 사용하세요");
+        }
+        store.update(
+                request.name(),
+                request.address(),
+                request.phoneNumber(),
+                request.minOrderAmount(),
+                request.status()
+        );
+
+        return new ApiResponse<>(true, StoreResponse.from(store), "가게 수정이 완료되었습니다.");
+    }
+    @Transactional
+    public ApiResponse<Void> deleteStore(Long storeId, Long ownerId, String role) {
+        validateOwner(role);
+
+        Store store = getStore(storeId);
+        validateStoreOwner(store, ownerId);
+
+        store.delete();
+
+        List<Menu> menus = menuRepository.findByStoreIdAndDeletedFalse(storeId);
+        menus.forEach(Menu::delete);
+
+        return new ApiResponse<>(true, null, "가게 삭제가 완료되었습니다.");
+    }
+
+    @Transactional
+    public ApiResponse<Void> deleteMenu(Long storeId, Long menuId, Long ownerId, String role) {
+        validateOwner(role);
+
+        Store store = getStore(storeId);
+        validateStoreOwner(store, ownerId);
+
+        Menu menu = getMenu(menuId);
+
+        if (!menu.getStoreId().equals(storeId)) {
+            throw new IllegalArgumentException("해당 가게의 메뉴가 아닙니다.");
+        }
+
+        menu.delete();
+        return new ApiResponse<>(true, null, "메뉴가 삭제되었습니다.");
     }
 
     @Transactional
@@ -94,12 +146,40 @@ public class StoreService {
     public ApiResponse<List<MenuResponse>> getMenus(Long storeId) {
         getStore(storeId);
 
-        List<MenuResponse> menus = menuRepository.findByStoreId(storeId)
+        List<MenuResponse> menus = menuRepository.findByStoreIdAndDeletedFalse(storeId)
                 .stream()
                 .map(MenuResponse::from)
                 .toList();
 
         return new ApiResponse<>(true, menus, "메뉴 목록 조회 성공");
+    }
+
+    @Transactional
+    public ApiResponse<MenuResponse> updateMenu(Long storeId, Long menuId, Long ownerId, String role, UpdateMenuRequest request) {
+        validateOwner(role);
+
+        Store store = getStore(storeId);
+        validateStoreOwner(store, ownerId);
+
+        Menu menu = getMenu(menuId);
+
+        if (!menu.getStoreId().equals(storeId)) {
+            throw new IllegalArgumentException("해당 가게의 메뉴가 아닙니다.");
+        }
+
+        menu.update(
+                request.name(),
+                request.price(),
+                request.description(),
+                request.soldOut()
+        );
+
+        return new ApiResponse<>(true, MenuResponse.from(menu), "메뉴 수정이 완료되었습니다.");
+    }
+
+    private Menu getMenu(Long menuId) {
+        return menuRepository.findByIdAndDeletedFalse(menuId)
+                .orElseThrow(() -> new IllegalArgumentException("메뉴를 찾을 수 없습니다."));
     }
 
     private Store getStore(Long storeId) {
@@ -110,6 +190,12 @@ public class StoreService {
     private void validateOwner(String role) {
         if (!"OWNER".equals(role)) {
             throw new IllegalArgumentException("사장님 권한만 요청할 수 있습니다.");
+        }
+    }
+
+    private void validateStoreOwner(Store store, Long ownerId) {
+        if (!store.getOwnerId().equals(ownerId)) {
+            throw new IllegalArgumentException("본인 가게만 수정 또는 삭제할 수 있습니다.");
         }
     }
 }
