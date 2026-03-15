@@ -15,3 +15,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+jwt:
+  secret: this-is-a-very-secret-key-for-delivery-project-auth-token
+  access-token-expiration: 3600000

@@ -3,6 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/delivery.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/delivery.common.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/gateway-service/delivery.gateway-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/gateway-service/delivery.gateway-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/order-service/delivery.order-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/order-service/delivery.order-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/payment-service/delivery.payment-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/payment-service/delivery.payment-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/store-service/delivery.store-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/store-service/delivery.store-service.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/user-service/delivery.user-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/user-service/delivery.user-service.main.iml" />
     </modules>
   </component>

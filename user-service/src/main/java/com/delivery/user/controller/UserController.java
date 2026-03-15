@@ -1,4 +1,4 @@
-package com.delivery.user;
+package com.delivery.user.controller;
 
 import com.delivery.common.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
