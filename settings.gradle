@@ -1,0 +1,8 @@
+rootProject.name = 'delivery'
+
+include 'common'
+include 'gateway-service'
+include 'user-service'
+include 'store-service'
+include 'order-service'
+include 'payment-service'

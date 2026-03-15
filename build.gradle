@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group = 'com.delivery'
+    version = '0.0.1-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.38'
+        annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
