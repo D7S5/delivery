@@ -64,4 +64,25 @@ public class Order {
     public void changeStatus(OrderStatus status) {
         this.status = status;
     }
+
+    public void markPaid() {
+        if (this.status == OrderStatus.CANCELED) {
+            throw new IllegalArgumentException("취소된 주문은 결제할 수 없습니다.");
+        }
+        if (this.status == OrderStatus.PAID) {
+            throw new IllegalArgumentException("이미 결제가 완료 된 주문입니다.");
+        }
+        this.status = OrderStatus.PAID;
+    }
+
+    public void cancel() {
+        if (this.status == OrderStatus.PAID) {
+            throw new IllegalArgumentException(("결제 완료 된 주문은 취소할 수 없습니다"));
+        } // 가능하게
+        if (this.status == OrderStatus.CANCELED) {
+            throw new IllegalArgumentException("이미 취소된 주문입니다.");
+        }
+        this.status = OrderStatus.CANCELED;
+    }
+
 }
