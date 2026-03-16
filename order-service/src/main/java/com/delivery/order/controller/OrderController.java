@@ -3,6 +3,7 @@ package com.delivery.order.controller;
 import com.delivery.common.ApiResponse;
 import com.delivery.order.dto.CreateOrderRequest;
 import com.delivery.order.dto.OrderDetailResponse;
+import com.delivery.order.dto.OrderInternalResponse;
 import com.delivery.order.dto.OrderSummaryResponse;
 import com.delivery.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -41,5 +42,24 @@ public class OrderController {
             @PathVariable Long orderId
     ) {
         return orderService.getMyOrderDetail(userId, orderId);
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    public ApiResponse<Void> cancelOrder(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long orderId
+    ) {
+        return orderService.cancelOrder(userId, role, orderId);
+    }
+
+    @GetMapping("/internal/{orderId}")
+    public ApiResponse<OrderInternalResponse> getInternalOrder(@PathVariable Long orderId) {
+        return orderService.getInternalOrder(orderId);
+    }
+
+    @PutMapping("/{orderId}/paid")
+    public ApiResponse<Void> markOrderPaid(@PathVariable Long orderId) {
+        return orderService.markOrderPaid(orderId);
     }
 }

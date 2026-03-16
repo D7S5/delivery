@@ -1,10 +1,7 @@
 package com.delivery.order.service;
 
 import com.delivery.common.ApiResponse;
-import com.delivery.order.dto.CreateOrderRequest;
-import com.delivery.order.dto.OrderDetailResponse;
-import com.delivery.order.dto.OrderItemResponse;
-import com.delivery.order.dto.OrderSummaryResponse;
+import com.delivery.order.dto.*;
 import com.delivery.order.entity.Order;
 import com.delivery.order.entity.OrderItem;
 import com.delivery.order.entity.OrderStatus;
@@ -24,8 +21,6 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-
-
 
     @Transactional
     public ApiResponse<OrderDetailResponse> createOrder(Long customerId, String customerEmail, String role, CreateOrderRequest request) {
@@ -90,12 +85,46 @@ public class OrderService {
         Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
-        List<OrderItemResponse> items = orderItemRepository.findByOrderId(orderId)
-                .stream()
-                .map(OrderItemResponse::from)
-                .toList();
+        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 
-        OrderDetailResponse response = new OrderDetailResponse(
+        return new ApiResponse<>(
+                true,
+                toOrderDetailResponse(order, items),
+                "주문 상세 조회 성공"
+        );
+    }
+
+    public ApiResponse<OrderInternalResponse> getInternalOrder(Long orderId) {
+        Order order = getOrder(orderId);
+        return new ApiResponse<>(true, OrderInternalResponse.from(order), "주문 내부 조회 성공");
+    }
+    @Transactional
+    public ApiResponse<Void> markOrderPaid(Long orderId) {
+        Order order = getOrder(orderId);
+        order.markPaid();
+        return new ApiResponse<>(true, null, "주문 상태가 결제 완료 상태로 변경되었습니다.");
+    }
+
+    public ApiResponse<Void> cancelOrder(Long customerId, String role, Long orderId) {
+        validateCustomer(role);
+
+        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+        order.cancel();
+
+        return new ApiResponse<>(true, null, "주문 취소가 완료되었습니다.");
+    }
+
+    private Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+    }
+
+
+
+    private OrderDetailResponse toOrderDetailResponse(Order order, List<OrderItem> items) {
+        return new OrderDetailResponse(
                 order.getId(),
                 order.getCustomerId(),
                 order.getCustomerEmail(),
@@ -106,9 +135,8 @@ public class OrderService {
                 order.getStatus(),
                 order.getRequestMessage(),
                 order.getCreatedAt(),
-                items
+                items.stream().map(OrderItemResponse::from).toList()
         );
-        return new ApiResponse<>(true, response, "주문 상세 조회 성공");
     }
 
     public void validateCustomer(String role) {
