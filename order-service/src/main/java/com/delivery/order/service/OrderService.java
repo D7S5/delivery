@@ -86,9 +86,30 @@ public class OrderService {
 
         return new ApiResponse<>(true, orders, "내 주문 조회 성공");
     }
+    public ApiResponse<OrderDetailResponse> getMyOrderDetail(Long customerId, Long orderId) {
+        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
+        List<OrderItemResponse> items = orderItemRepository.findByOrderId(orderId)
+                .stream()
+                .map(OrderItemResponse::from)
+                .toList();
 
-
+        OrderDetailResponse response = new OrderDetailResponse(
+                order.getId(),
+                order.getCustomerId(),
+                order.getCustomerEmail(),
+                order.getStoreId(),
+                order.getStoreName(),
+                order.getDeliveryAddress(),
+                order.getTotalAmount(),
+                order.getStatus(),
+                order.getRequestMessage(),
+                order.getCreatedAt(),
+                items
+        );
+        return new ApiResponse<>(true, response, "주문 상세 조회 성공");
+    }
 
     public void validateCustomer(String role) {
         if (!"CUSTOMER".equals(role)) {
