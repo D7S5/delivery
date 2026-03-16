@@ -17,3 +17,12 @@ spring:
 
   internal:
     service-token: delivery-internal-secret-token
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-service
+      auto-offset-reset: earliest
+
+  topics:
+    payment-completed: payment.completed

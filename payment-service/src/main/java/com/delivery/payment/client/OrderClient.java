@@ -17,10 +17,14 @@ public class OrderClient {
     @Value("${order-service.base-url}")
     private String orderServiceBaseUrl;
 
+    @Value("${internal.service-token}")
+    private String internalServiceToken;
+
     public OrderInternalResponse getOrder(Long orderId) {
         ApiResponse<OrderInternalResponse> response = restClientBuilder.build()
                 .get()
                 .uri(orderServiceBaseUrl + "/api/orders/internal/{orderId}", orderId)
+                .header("X-Internal-Service-Token", internalServiceToken)
                 .retrieve()
                 .body(new ParameterizedTypeReference<ApiResponse<OrderInternalResponse>>() {});
 
@@ -35,6 +39,7 @@ public class OrderClient {
         restClientBuilder.build()
                 .put()
                 .uri(orderServiceBaseUrl + "/api/orders/{orderId}/paid", orderId)
+                .header("X-Internal-Service-Token", internalServiceToken)
                 .retrieve()
                 .toBodilessEntity();
     }

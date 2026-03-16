@@ -2,19 +2,22 @@ package com.delivery.payment.service;
 
 import com.delivery.common.ApiResponse;
 import com.delivery.payment.client.OrderClient;
-import com.delivery.payment.dto.CreatePaymentRequest;
-import com.delivery.payment.dto.OrderInternalResponse;
-import com.delivery.payment.dto.PaymentDetailResponse;
-import com.delivery.payment.dto.PaymentSummaryResponse;
+import com.delivery.payment.dto.*;
+import com.delivery.payment.entity.OutboxEvent;
 import com.delivery.payment.entity.Payment;
 import com.delivery.payment.entity.PaymentStatus;
+import com.delivery.payment.repository.OutboxRepository;
 import com.delivery.payment.repository.PaymentRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +25,17 @@ import java.util.List;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final OutboxRepository outboxRepository;
     private final OrderClient orderClient;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public ApiResponse<PaymentDetailResponse> createPayment(Long userId, String email, String role, CreatePaymentRequest request) {
         validateCustomer(role);
+
+        if (paymentRepository.existsByOrderId(request.orderId())) {
+            throw new IllegalArgumentException("이미 결제된 주문입니다.");
+        }
 
         OrderInternalResponse order = orderClient.getOrder(request.orderId());
 
@@ -38,19 +47,49 @@ public class PaymentService {
             throw new IllegalArgumentException("결제 가능한 주문 상태가 아닙니다.");
         }
 
-        Payment payment = Payment.builder()
-                .orderId(order.orderId())
-                .customerId(order.customerId())
-                .customerEmail(order.customerEmail())
-                .amount(order.totalAmount())
-                .paymentMethod(request.paymentMethod())
-                .status(PaymentStatus.COMPLETED)
-                .createdAt(LocalDateTime.now())
-                .build();
+        Payment savedPayment;
+        try {
+            Payment payment = Payment.builder()
+                    .orderId(order.orderId())
+                    .customerId(order.customerId())
+                    .customerEmail(order.customerEmail())
+                    .amount(order.totalAmount())
+                    .paymentMethod(request.paymentMethod())
+                    .status(PaymentStatus.COMPLETED)
+                    .createdAt(LocalDateTime.now())
+                    .build();
 
-        Payment savedPayment = paymentRepository.save(payment);
+            savedPayment = paymentRepository.save(payment);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("이미 결제된 주문입니다.");
+        }
 
-        orderClient.markOrderPaid(order.orderId());
+        try {
+            PaymentCompletedEvent event = new PaymentCompletedEvent(
+                    UUID.randomUUID().toString(),
+                    savedPayment.getId(),
+                    savedPayment.getOrderId(),
+                    savedPayment.getCustomerId(),
+                    savedPayment.getAmount()
+            );
+
+            String payload = objectMapper.writeValueAsString(event);
+
+            OutboxEvent outboxEvent = OutboxEvent.create(
+                    "PAYMENT",
+                    savedPayment.getId(),
+                    "PAYMENT_COMPLETED",
+                    payload
+            );
+
+            outboxRepository.save(outboxEvent);
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+
+//        orderClient.markOrderPaid(order.orderId());
 
         return new ApiResponse<>(true, PaymentDetailResponse.from(savedPayment), "결제가 완료되었습니다.");
     }

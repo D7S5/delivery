@@ -17,3 +17,15 @@ spring:
 
 order-service:
   base-url: http://localhost:8300
+
+internal:
+  service-token: delivery-internal-secret-token
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+
+  outbox:
+    payment-completed-topic: payment.completed
