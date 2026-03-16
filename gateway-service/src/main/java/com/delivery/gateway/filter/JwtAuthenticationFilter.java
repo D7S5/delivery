@@ -28,12 +28,21 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/actuator/**"
     );
 
+    private static final List<String> BLOCKED_EXTERNAL_PATHS = List.of(
+            "/api/orders/internal/**",
+            "/api/orders/*/paid"
+    );
+
     private final JwtTokenValidator jwtTokenValidator;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
+
+        if (isBlockedExternalPath(path)) {
+            return forbidden(exchange, "외부에서 접속이 불가능한 API입니다.");
+        }
 
         if (isWhiteList(path)) {
             return chain.filter(exchange);
@@ -84,6 +93,27 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                   "message": "%s"
                 }
                 """.formatted(message);
+
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
+    }
+
+    private boolean isBlockedExternalPath(String path) {
+        return BLOCKED_EXTERNAL_PATHS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange, String message) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(HttpStatus.FORBIDDEN);
+        response.getHeaders().add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        String body = """
+            {
+              "success": false,
+              "data": null,
+              "message": "%s"
+            }
+            """.formatted(message);
 
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
