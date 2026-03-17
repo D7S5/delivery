@@ -7,10 +7,24 @@ spring:
 
   datasource:
     url: jdbc:mysql://localhost:3306/order_db?createDatabaseIfNotExist=true
-    username: root
-    password: 1234
+    username: austin
+    password: austinmysql
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+internal:
+  service-token: delivery-internal-secret-token
+
+topics:
+  payment-completed: payment.completed

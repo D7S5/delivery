@@ -27,3 +27,6 @@ spring:
           uri: http://localhost:8400
           predicates:
             - Path=/api/payments/**
+
+jwt:
+  secret: this-is-a-very-secret-key-for-delivery-project-auth-token

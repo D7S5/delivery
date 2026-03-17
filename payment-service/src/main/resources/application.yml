@@ -13,7 +13,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+
   kafka:
     bootstrap-servers: localhost:9092
     producer:

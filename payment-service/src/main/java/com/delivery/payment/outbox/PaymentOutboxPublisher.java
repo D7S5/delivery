@@ -26,7 +26,7 @@ public class PaymentOutboxPublisher {
     @Scheduled(fixedDelay = 1000)
     @Transactional
     public void publishPendingEvents() {
-        List<OutboxEvent> events = outboxRepository.findByTop100ByStatusOrderByIdAsc(OutboxStatus.PENDING);
+        List<OutboxEvent> events = outboxRepository.findTop100ByStatusOrderByIdAsc(OutboxStatus.PENDING);
 
         for (OutboxEvent event : events) {
             kafkaTemplate.send(topic, event.getEventId(), event.getPayload());

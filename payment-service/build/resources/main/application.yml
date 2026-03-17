@@ -13,4 +13,23 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+
+order-service:
+  base-url: http://localhost:8300
+
+internal:
+  service-token: delivery-internal-secret-token
+
+
+outbox:
+  payment-completed-topic: payment.completed

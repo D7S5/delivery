@@ -74,7 +74,7 @@ public class OrderService {
     }
 
     public ApiResponse<List<OrderSummaryResponse>> getMyOrders(Long customerId) {
-        List<OrderSummaryResponse> orders = orderRepository.findByCustomerIdOOrderByIdDesc(customerId)
+        List<OrderSummaryResponse> orders = orderRepository.findByCustomerIdOrderByIdDesc(customerId)
                 .stream()
                 .map(OrderSummaryResponse::from)
                 .toList();
