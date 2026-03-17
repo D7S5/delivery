@@ -15,14 +15,16 @@ spring:
       ddl-auto: update
     show-sql: true
 
-  internal:
-    service-token: delivery-internal-secret-token
-
   kafka:
     bootstrap-servers: localhost:9092
-    consumer:
-      group-id: order-service
-      auto-offset-reset: earliest
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-  topics:
-    payment-completed: payment.completed
+internal:
+  service-token: delivery-internal-secret-token
+
+topics:
+  payment-completed: payment.completed
