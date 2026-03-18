@@ -54,7 +54,7 @@ public class StoreService {
     public ApiResponse<StoreDetailResponse> getStoreDetail(Long storeId) {
         Store store = getStore(storeId);
 
-        List<MenuResponse> menus = menuRepository.findByStoreIdAndDeletedFalse(storeId)
+        List<MenuResponse> menus = menuRepository.findByStoreIdAndDeletedFalse(storeId) // soft delete
                 .stream()
                 .map(MenuResponse::from)
                 .toList();

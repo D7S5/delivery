@@ -121,8 +121,6 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
     }
 
-
-
     private OrderDetailResponse toOrderDetailResponse(Order order, List<OrderItem> items) {
         return new OrderDetailResponse(
                 order.getId(),
