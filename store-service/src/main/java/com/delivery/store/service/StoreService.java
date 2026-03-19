@@ -178,6 +178,20 @@ public class StoreService {
         return new ApiResponse<>(true, MenuResponse.from(menu), "메뉴 수정이 완료되었습니다.");
     }
 
+    public ApiResponse<StoreInternalResponse> getInternalStore(Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
+
+        StoreInternalResponse response =
+                new StoreInternalResponse(
+                        store.getId(),
+                        store.getName(),
+                        store.getMinOrderAmount(),
+                        store.getStatus()
+                );
+        return new ApiResponse<>(true, response, "가게 내부 조회 성공");
+    }
+
     private Menu getMenu(Long menuId) {
         return menuRepository.findByIdAndDeletedFalse(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("메뉴를 찾을 수 없습니다."));

@@ -1,6 +1,10 @@
 package com.delivery.order.service;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.order.client.StoreClient;
+import com.delivery.order.client.dto.OrderInternalResponse;
+import com.delivery.order.client.dto.StoreInternalResponse;
+import com.delivery.order.client.dto.StoreStatus;
 import com.delivery.order.dto.*;
 import com.delivery.order.entity.Order;
 import com.delivery.order.entity.OrderItem;
@@ -21,14 +25,37 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final StoreClient storeClient;
 
     @Transactional
     public ApiResponse<OrderDetailResponse> createOrder(Long customerId, String customerEmail, String role, CreateOrderRequest request) {
         validateCustomer(role);
 
+        System.out.println("createOrder");
+
+        ApiResponse<StoreInternalResponse> storeResponse = storeClient.getInternalStore(request.storeId());
+
+        if (storeResponse == null || !storeResponse.isSuccess() || storeResponse.getData() == null) {
+            throw new IllegalArgumentException("가게 정보를 조회할 수 없습니다.");
+        }
+
+        System.out.println("storeResponse = " + storeResponse);
+        StoreInternalResponse store = storeResponse.getData();
+
+        if (store.status() != StoreStatus.OPEN) {
+            throw new IllegalArgumentException("현재 영업 중인 가게가 아닙니다.");
+        }
+
         int totalAmount = request.items().stream()
                 .mapToInt(item -> item.menuPrice() * item.quantity())
                 .sum();
+
+        if (totalAmount < store.minOrderAmount()) {
+            throw new IllegalArgumentException("최소 주문 가능 금액은 " + store.minOrderAmount() + "입니다.");
+        }
+
+        System.out.println("totalAmount = " + totalAmount);
+        System.out.println("minOrderAmount = " + store.minOrderAmount());
 
         Order order = Order.builder()
                 .customerId(customerId)
@@ -143,4 +170,3 @@ public class OrderService {
         }
     }
 }
-

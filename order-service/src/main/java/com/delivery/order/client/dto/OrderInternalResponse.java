@@ -1,4 +1,4 @@
-package com.delivery.order.dto;
+package com.delivery.order.client.dto;
 
 import com.delivery.order.entity.Order;
 import com.delivery.order.entity.OrderStatus;

@@ -1,8 +1,26 @@
 package com.delivery.common;
 
-public record ApiResponse<T>(
-        boolean success,
-        T data,
-        String message
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ApiResponse<T>{
+    private boolean success;
+    private T data;
+    private String message;
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

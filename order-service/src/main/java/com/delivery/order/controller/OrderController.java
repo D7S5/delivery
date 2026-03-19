@@ -1,10 +1,8 @@
 package com.delivery.order.controller;
 
 import com.delivery.common.ApiResponse;
-import com.delivery.order.dto.CreateOrderRequest;
-import com.delivery.order.dto.OrderDetailResponse;
-import com.delivery.order.dto.OrderInternalResponse;
-import com.delivery.order.dto.OrderSummaryResponse;
+import com.delivery.order.client.dto.OrderInternalResponse;
+import com.delivery.order.dto.*;
 import com.delivery.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,4 +60,5 @@ public class OrderController {
     public ApiResponse<Void> markOrderPaid(@PathVariable Long orderId) {
         return orderService.markOrderPaid(orderId);
     }
+
 }
