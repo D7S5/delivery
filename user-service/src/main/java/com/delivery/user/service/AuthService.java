@@ -72,7 +72,7 @@ public class AuthService {
                 new UserResponse(
                         principal.getId(),
                         principal.getEmail(),
-                        principal.getUsername(),
+                        principal.getName(),
                         principal.getRole()
                 )
         );
