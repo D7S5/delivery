@@ -1,7 +1,6 @@
 package com.delivery.user.config;
 
 import com.delivery.user.security.CustomUserDetailsService;
-import io.jsonwebtoken.security.Password;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +51,6 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider(
-            CustomUserDetailsService customUserDetailsService,
             PasswordEncoder passwordEncoder
     ) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);

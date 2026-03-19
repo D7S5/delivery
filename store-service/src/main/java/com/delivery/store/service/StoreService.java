@@ -135,6 +135,7 @@ public class StoreService {
                 .price(request.price())
                 .description(request.description())
                 .soldOut(false)
+                .deleted(false)
                 .createdAt(LocalDateTime.now())
                 .build();
 

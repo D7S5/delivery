@@ -105,6 +105,7 @@ public class OrderService {
         return new ApiResponse<>(true, null, "주문 상태가 결제 완료 상태로 변경되었습니다.");
     }
 
+    @Transactional
     public ApiResponse<Void> cancelOrder(Long customerId, String role, Long orderId) {
         validateCustomer(role);
 
@@ -112,7 +113,6 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
         order.cancel();
-
         return new ApiResponse<>(true, null, "주문 취소가 완료되었습니다.");
     }
 
