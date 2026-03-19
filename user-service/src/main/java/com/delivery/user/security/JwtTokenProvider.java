@@ -40,4 +40,18 @@ public class JwtTokenProvider {
                 .signWith(key)
                 .compact();
     }
+
+    public String createAccessToken(Long userId, String email, String role) {
+        Date now = new Date();
+        Date expiredAt = new Date(now.getTime() + accessTokenExpiration);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("email", email)
+                .claim("role", role)
+                .issuedAt(now)
+                .expiration(expiredAt)
+                .signWith(key)
+                .compact();
+    }
 }
