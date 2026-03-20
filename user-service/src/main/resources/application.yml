@@ -19,3 +19,4 @@ spring:
 jwt:
   secret: this-is-a-very-secret-key-for-delivery-project-auth-token
   access-token-expiration: 3600000
+  refresh-token-expiration: 72000000

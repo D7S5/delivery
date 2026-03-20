@@ -25,13 +25,11 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final StoreClient storeClient;
+        private final StoreClient storeClient;
 
     @Transactional
     public ApiResponse<OrderDetailResponse> createOrder(Long customerId, String customerEmail, String role, CreateOrderRequest request) {
         validateCustomer(role);
-
-        System.out.println("createOrder");
 
         ApiResponse<StoreInternalResponse> storeResponse = storeClient.getInternalStore(request.storeId());
 
@@ -39,7 +37,6 @@ public class OrderService {
             throw new IllegalArgumentException("가게 정보를 조회할 수 없습니다.");
         }
 
-        System.out.println("storeResponse = " + storeResponse);
         StoreInternalResponse store = storeResponse.getData();
 
         if (store.status() != StoreStatus.OPEN) {
