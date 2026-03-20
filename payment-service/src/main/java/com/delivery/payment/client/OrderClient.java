@@ -28,11 +28,11 @@ public class OrderClient {
                 .retrieve()
                 .body(new ParameterizedTypeReference<ApiResponse<OrderInternalResponse>>() {});
 
-        if (response == null || response.data() == null) {
+        if (response == null || response.getData() == null) {
             throw new IllegalArgumentException("주문 정보를 가져오지 못했습니다.");
         }
 
-        return response.data();
+        return response.getData();
     }
 
     public void markOrderPaid(Long orderId) {
