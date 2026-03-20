@@ -10,7 +10,6 @@ import com.delivery.user.security.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,8 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
-import static java.util.Objects.hash;
 
 @Service
 @RequiredArgsConstructor
@@ -106,12 +103,21 @@ public class AuthService {
             throw new RuntimeException("Invalid Refresh Token");
         }
 
-        String userId = jwtTokenProvider.getSubject(oldRefreshToken);
-        String email = jwtTokenProvider.getEmail(oldRefreshToken);
-        String role = jwtTokenProvider.getRole(oldRefreshToken);
+        String tokenType = jwtTokenProvider.getTokenType(oldRefreshToken);
+        if (!"refresh".equals(tokenType)) {
+            throw new SecurityException("Invalid token type");
+        }
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(Long.valueOf(userId), email, role);
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(Long.valueOf(userId), email, role);
+        String userId = jwtTokenProvider.getSubject(oldRefreshToken);
+
+        System.out.println("========== REFRESH ==========");
+        System.out.println(userId);
+
+        User user = userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new IllegalArgumentException("사용자가 없습니다."));
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId(), user.getEmail(), user.getRole().name());
 
         cookieUtil.addRefreshTokenCookie(response, newRefreshToken);
 

@@ -30,7 +30,7 @@ public class AuthController {
         return authService.login(request, response);
     }
 
-    @PostMapping("/refesh")
+    @PostMapping("/refresh")
     public ApiResponse<JwtResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
         return authService.refresh(request, response);
     }

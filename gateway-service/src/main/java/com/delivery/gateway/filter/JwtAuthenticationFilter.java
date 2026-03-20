@@ -25,7 +25,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private static final List<String> WHITE_LIST = List.of(
             "/api/users/signup",
             "/api/users/login",
+            "/api/users/refresh",
+            "/api/users/logout",
             "/actuator/**"
+
     );
 
     private static final List<String> BLOCKED_EXTERNAL_PATHS = List.of(
