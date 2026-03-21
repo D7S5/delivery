@@ -25,7 +25,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-        private final StoreClient storeClient;
+    private final StoreClient storeClient;
 
     @Transactional
     public ApiResponse<OrderDetailResponse> createOrder(Long customerId, String customerEmail, String role, CreateOrderRequest request) {
