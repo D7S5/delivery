@@ -9,12 +9,17 @@
         </processorPath>
         <module name="delivery.gateway-service.main" />
         <module name="delivery.common.main" />
+        <module name="delivery.cart-serivce.main" />
         <module name="delivery.order-service.main" />
         <module name="delivery.store-service.main" />
         <module name="delivery.user-service.main" />
         <module name="delivery.payment-service.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="17" />
+    <bytecodeTargetLevel target="17">
+      <module name="delivery.cart-serivce" target="21" />
+      <module name="delivery.cart-serivce.main" target="21" />
+      <module name="delivery.cart-serivce.test" target="21" />
+    </bytecodeTargetLevel>
   </component>
 </project>
