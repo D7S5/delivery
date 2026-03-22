@@ -37,7 +37,7 @@ public class CartService {
         if (!cart.isEmpty() && !cart.getStoreId().equals(request.getStoreId())) {
             if (Boolean.TRUE.equals(request.getReplace())) {
                 cart.clear();
-            } else {
+            } else { // 409
                 throw new IllegalStateException("다른 가게 상품이 이미 장바구니에 있습니다.");
             }
         }
