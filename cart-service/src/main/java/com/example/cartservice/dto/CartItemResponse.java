@@ -23,6 +23,4 @@ public class CartItemResponse {
         this.quantity = quantity;
         this.subTotal = menuPrice * quantity;
     }
-
-
 }

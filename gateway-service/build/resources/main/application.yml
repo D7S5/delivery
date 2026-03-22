@@ -28,5 +28,10 @@ spring:
           predicates:
             - Path=/api/payments/**
 
+        - id: cart-service
+          uri: http://localhost:8500
+          predicates:
+            - Path=/api/cart/**
+
 jwt:
   secret: this-is-a-very-secret-key-for-delivery-project-auth-token

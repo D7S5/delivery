@@ -9,7 +9,7 @@
         </processorPath>
         <module name="delivery.gateway-service.main" />
         <module name="delivery.common.main" />
-        <module name="delivery.cart-serivce.main" />
+        <module name="delivery.cart-service.main" />
         <module name="delivery.order-service.main" />
         <module name="delivery.store-service.main" />
         <module name="delivery.user-service.main" />
