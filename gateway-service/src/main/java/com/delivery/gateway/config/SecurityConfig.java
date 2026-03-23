@@ -8,7 +8,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 public class SecurityConfig {
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> {})

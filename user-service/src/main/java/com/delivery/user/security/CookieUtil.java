@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 public class CookieUtil {
 
     private static final String REFRESH_TOKEN_COOKIE = "refreshToken";
-    private final JwtTokenProvider jwtTokenProvider;
 
     public void addRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
 

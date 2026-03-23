@@ -111,7 +111,6 @@ public class AuthService {
         String userId = jwtTokenProvider.getSubject(oldRefreshToken);
 
         System.out.println("========== REFRESH ==========");
-        System.out.println(userId);
 
         User user = userRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 없습니다."));
