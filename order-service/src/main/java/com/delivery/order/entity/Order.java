@@ -61,10 +61,6 @@ public class Order {
         this.createdAt = createdAt;
     }
 
-    public void changeStatus(OrderStatus status) {
-        this.status = status;
-    }
-
     public void markPaid() {
         if (this.status == OrderStatus.CANCELED) {
             throw new IllegalArgumentException("취소된 주문은 결제할 수 없습니다.");
@@ -84,5 +80,4 @@ public class Order {
         }
         this.status = OrderStatus.CANCELED;
     }
-
 }

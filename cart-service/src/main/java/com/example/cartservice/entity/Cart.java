@@ -40,7 +40,7 @@ public class Cart {
     }
 
     public void clear() {
-        this.items.clear();;
+        this.items.clear();
         this.storeId = null;
         this.storeName = null;
     }
