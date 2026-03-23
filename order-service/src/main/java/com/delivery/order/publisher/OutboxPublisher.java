@@ -18,7 +18,6 @@ public class OutboxPublisher {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-
     @Scheduled(fixedDelay = 3000)
     @Transactional
     public void publish() {
@@ -26,6 +25,8 @@ public class OutboxPublisher {
 
         for (OutboxEvent event : events) {
             kafkaTemplate.send(event.getTopic(), event.getAggregateId(), event.getPayload());
+
+            event.markPublished();
         }
     }
 }

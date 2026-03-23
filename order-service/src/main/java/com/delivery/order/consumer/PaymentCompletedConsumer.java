@@ -32,7 +32,7 @@ public class PaymentCompletedConsumer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    @Value("${topics.order-paid-completed}")
+    @Value("${topics.store-order-created}")
     private String topic;
 
     @KafkaListener(topics = "${topics.payment-completed}", groupId = "order-service")
@@ -47,9 +47,7 @@ public class PaymentCompletedConsumer {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
-        if (!order.isPaid()) {
-            order.markPaid();
-        }
+        order.markPaid();
 
         List<OrderItem> items = orderItemRepository.findByOrderId(event.orderId());
 

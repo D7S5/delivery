@@ -33,5 +33,4 @@ internal:
 
 topics:
   payment-completed: payment.completed
-  topics:
-    store-order-created: store-order-created
+  store-order-created: store-order-created
