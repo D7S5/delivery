@@ -14,8 +14,7 @@ public class OrderPaidConsumer {
 
     private final ObjectMapper objectMapper;
 
-
-    @KafkaListener(topics = "store-order-created", groupId = "store-order-created")
+    @KafkaListener(topics = "store-order-created", groupId = "store-service")
     @Transactional
     public void consume(String message) throws Exception {
         StoreOrderCreatedEvent payload = objectMapper.readValue(message, StoreOrderCreatedEvent.class);

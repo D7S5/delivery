@@ -33,6 +33,7 @@ public class OutboxEvent {
     @Column(nullable = false)
     private String payload;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OutboxStatus status;
 
