@@ -30,7 +30,7 @@ public class OutboxEvent {
     private String topic;
 
     @Lob
-    @Column(nullable = false)
+    @Column(columnDefinition = "LONGTEXT", nullable = false)
     private String payload;
 
     @Enumerated(EnumType.STRING)
