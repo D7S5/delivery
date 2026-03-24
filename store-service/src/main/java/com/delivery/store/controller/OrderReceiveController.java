@@ -1,6 +1,8 @@
 package com.delivery.store.controller;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.store.dto.OrderReceiveDetailResponse;
+import com.delivery.store.dto.OrderReceiveSummaryResponse;
 import com.delivery.store.entity.Store;
 import com.delivery.store.service.OrderReceiveService;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,26 @@ public class OrderReceiveController {
 
     private final OrderReceiveService orderReceiveService;
 
-//    @GetMapping
-//    public ApiResponse<List<Store>>
+    @GetMapping
+    public ApiResponse<List<OrderReceiveSummaryResponse>> getMyStoreOrders(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        System.out.println("X-User-Id = " + userId);
+        System.out.println("X-User-Role = " + role);
+        return orderReceiveService.getMyStoreOrders(userId, role);
+    }
+
+    @GetMapping("/{orderReceiveId}")
+    public ApiResponse<OrderReceiveDetailResponse> getMyStoreOrderDetail(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long orderReceiveId
+    ) {
+        System.out.println("X-User-Id = " + userId);
+        System.out.println("X-User-Role = " + role);
+        return orderReceiveService.getMyStoreOrderDetail(userId, role, orderReceiveId);
+    }
 
     @PatchMapping("/{orderReceiveId}/preparing")
     public ApiResponse<Void> startPreparing(
@@ -24,6 +44,8 @@ public class OrderReceiveController {
             @RequestHeader("X-User-Role") String role,
             @PathVariable Long orderReceiveId
     ) {
+        System.out.println("X-User-Id = " + userId);
+        System.out.println("X-User-Role = " + role);
         return orderReceiveService.startPreparing(userId, role, orderReceiveId);
     }
 }

@@ -70,24 +70,24 @@ public class StoreController {
         return storeService.getMenus(storeId);
     }
 
-    @PutMapping("/{storeId}/menus/{menuId}")
-    public ApiResponse<MenuResponse> updateMenu(
-            @PathVariable Long storeId,
-            @PathVariable Long menuId,
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role,
-            @Valid @RequestBody UpdateMenuRequest request
-    ) {
-        return storeService.updateMenu(storeId, menuId, userId, role, request);
-    }
+        @PutMapping("/{storeId}/menus/{menuId}")
+        public ApiResponse<MenuResponse> updateMenu(
+                @PathVariable Long storeId,
+                @PathVariable Long menuId,
+                @RequestHeader("X-User-Id") Long userId,
+                @RequestHeader("X-User-Role") String role,
+                @Valid @RequestBody UpdateMenuRequest request
+        ) {
+            return storeService.updateMenu(storeId, menuId, userId, role, request);
+        }
 
-    @DeleteMapping("/{storeId}/menus/{menuId}")
-    public ApiResponse<Void> deleteMenu(
-            @PathVariable Long storeId,
-            @PathVariable Long menuId,
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role
-    ) {
-        return storeService.deleteMenu(storeId, menuId, userId, role);
-    }
+        @DeleteMapping("/{storeId}/menus/{menuId}")
+        public ApiResponse<Void> deleteMenu(
+                @PathVariable Long storeId,
+                @PathVariable Long menuId,
+                @RequestHeader("X-User-Id") Long userId,
+                @RequestHeader("X-User-Role") String role
+        ) {
+            return storeService.deleteMenu(storeId, menuId, userId, role);
+        }
 }

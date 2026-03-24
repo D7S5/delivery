@@ -1,6 +1,8 @@
 package com.delivery.store.service;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.store.dto.OrderReceiveDetailResponse;
+import com.delivery.store.dto.OrderReceiveSummaryResponse;
 import com.delivery.store.entity.OrderReceive;
 import com.delivery.store.entity.Store;
 import com.delivery.store.repository.OrderReceiveRepository;
@@ -9,12 +11,49 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class OrderReceiveService {
 
     private final OrderReceiveRepository orderReceiveRepository;
     private final StoreRepository storeRepository;
+
+    @Transactional(readOnly = true)
+    public ApiResponse<List<OrderReceiveSummaryResponse>> getMyStoreOrders(Long userId, String role) {
+        validateOwner(role);
+
+        Store store = storeRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+
+        List<OrderReceiveSummaryResponse> responses =
+                orderReceiveRepository.findAllByStoreIdOrderByIdDesc(store.getId())
+                        .stream()
+                        .map(OrderReceiveSummaryResponse::from)
+                        .toList();
+
+        return new ApiResponse<>(true, responses, "가게 목록");
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<OrderReceiveDetailResponse> getMyStoreOrderDetail(Long userId, String role, Long orderReceiveId) {
+        validateOwner(role);
+
+        Store store = storeRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+
+        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
+                .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
+
+        return new ApiResponse<>(true, OrderReceiveDetailResponse.from(orderReceive), "가게 세부정보");
+    }
+
+    private void validateOwner(String role) {
+        if (!"OWNER".equals(role)) {
+            throw new IllegalArgumentException("점주만 접근할 수 있습니다.");
+        }
+    }
 
     @Transactional
     public ApiResponse<Void> startPreparing(Long userId, String role, Long orderReceiveId) {
@@ -26,6 +65,9 @@ public class OrderReceiveService {
 
         OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
+
+        System.out.println("orderReceiveId = " + orderReceiveId);
+        System.out.println("current status = " + orderReceive.getStatus());
 
         orderReceive.startPreparing();
 
