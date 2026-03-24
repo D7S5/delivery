@@ -67,4 +67,32 @@ public class OrderReceive {
         items.add(item);
         item.assignOrderReceive(this);
     }
+
+    public void startPreparing() {
+        if (this.status != OrderStatus.RECEIVE_ORDER) {
+            throw new IllegalArgumentException("접수된 주문만 준비 상태로 변경할 수 있습니다.");
+        }
+        this.status = OrderStatus.PREPARING;
+    }
+
+    public void startDelivery() {
+        if (this.status != OrderStatus.PREPARING) {
+            throw new IllegalArgumentException("준비 중 상태의 주문만 배달 상태로 변경할 수 있습니다.");
+        }
+        this.status = OrderStatus.DELIVERY;
+    }
+
+    public void complete() {
+        if (this.status != OrderStatus.DELIVERY) {
+            throw new IllegalArgumentException("배달 중인 주문만 완료 상태로 바꿀 수 있습니다.");
+        }
+        this.status = OrderStatus.COMPLETED;
+    }
+
+    public void cancel() {
+        if (this.status == OrderStatus.COMPLETED) {
+            throw new IllegalArgumentException("완료된 주문은 취소할 수 없습니다.");
+        }
+        this.status = OrderStatus.CANCELED;
+    }
 }

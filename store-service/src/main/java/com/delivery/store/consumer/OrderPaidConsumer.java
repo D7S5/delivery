@@ -27,7 +27,6 @@ public class OrderPaidConsumer {
     public void consume(String message) throws Exception {
         StoreOrderCreatedEvent payload = objectMapper.readValue(message, StoreOrderCreatedEvent.class);
 
-        System.out.println(payload);
         OrderReceive orderReceive = OrderReceive.builder()
                 .orderId(payload.orderId())
                 .customerId(payload.customerId())
