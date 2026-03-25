@@ -75,26 +75,49 @@ public class OrderReceiveService {
     }
 
     @Transactional
-    public void startDelivery(Long loginStoreId, Long orderReceiveId) {
-        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, loginStoreId)
+    public ApiResponse<Void> startDelivery(Long userId, String role, Long orderReceiveId) {
+        if (!"OWNER".equals(role)) {
+            throw new IllegalArgumentException("점주만 주문을 준비상태로 변경할 수 있습니다.");
+        }
+
+        Store store = storeRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+
+        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.startDelivery();
+
+        return new ApiResponse<>(true, null, "주문이 배달중으로 변경되었습니다.");
     }
 
     @Transactional
-    public void completeOrder(Long loginStoreId, Long orderReceiveId) {
-        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, loginStoreId)
+    public ApiResponse<Void> completeOrder(Long userId, String role, Long orderReceiveId) {
+        if (!"OWNER".equals(role)) {
+            throw new IllegalArgumentException("점주만 주문을 준비상태로 변경할 수 있습니다.");
+        }
+        Store store = storeRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+
+        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.complete();
+        return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
     }
 
     @Transactional
-    public void cancelOrder(Long loginStoreId, Long orderReceiveId) {
-        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, loginStoreId)
+    public ApiResponse<Void> cancelOrder(Long userId, String role, Long orderReceiveId) {
+        if (!"OWNER".equals(role)) {
+            throw new IllegalArgumentException("점주만 주문을 준비상태로 변경할 수 있습니다.");
+        }
+        Store store = storeRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+
+        OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.cancel();
+        return new ApiResponse<>(true, null, "주문이 취소되었습니다..");
     }
 }
