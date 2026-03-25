@@ -60,5 +60,4 @@ public class OrderController {
     public ApiResponse<Void> markOrderPaid(@PathVariable Long orderId) {
         return orderService.markOrderPaid(orderId);
     }
-
 }

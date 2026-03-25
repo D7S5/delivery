@@ -1,12 +1,14 @@
 server:
   port: 8200
 
+order-service:
+  url: http://localhost:8300
+
+
 spring:
   application:
     name: store-service
 
-order-service:
-  url: http://localhost:8300
 
 
   datasource:

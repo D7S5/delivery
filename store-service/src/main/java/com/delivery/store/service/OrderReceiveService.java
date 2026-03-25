@@ -1,6 +1,7 @@
 package com.delivery.store.service;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.store.client.OrderClient;
 import com.delivery.store.dto.OrderReceiveDetailResponse;
 import com.delivery.store.dto.OrderReceiveSummaryResponse;
 import com.delivery.store.entity.OrderReceive;
@@ -19,6 +20,7 @@ public class OrderReceiveService {
 
     private final OrderReceiveRepository orderReceiveRepository;
     private final StoreRepository storeRepository;
+    private final OrderClient orderClient;
 
     @Transactional(readOnly = true)
     public ApiResponse<List<OrderReceiveSummaryResponse>> getMyStoreOrders(Long userId, String role) {
@@ -67,7 +69,8 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.startPreparing();
-        // startPreparing 전파 코드
+        System.out.println(orderReceive.getOrderId());
+        orderClient.prepared(orderReceive.getOrderId());
 
         return new ApiResponse<>(true, null, "주문이 준비중으로 변경되었습니다.");
     }
@@ -85,7 +88,8 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.startDelivery();
-        // status 전파 코드
+        System.out.println(orderReceive.getOrderId());
+        orderClient.delivery(orderReceive.getOrderId());
 
         return new ApiResponse<>(true, null, "주문이 배달중으로 변경되었습니다.");
     }
@@ -102,7 +106,8 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.complete();
-        // status 전파 코드
+        System.out.println(orderReceive.getOrderId());
+        orderClient.complete(orderReceive.getOrderId());
 
         return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
     }
@@ -119,7 +124,7 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.cancel();
-        // status 전파 코드
+        orderClient.cancel(orderReceive.getOrderId());
         return new ApiResponse<>(true, null, "주문이 취소되었습니다..");
     }
 }

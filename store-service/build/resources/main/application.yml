@@ -1,9 +1,15 @@
 server:
   port: 8200
 
+order-service:
+  url: http://localhost:8300
+
+
 spring:
   application:
     name: store-service
+
+
 
   datasource:
     url: jdbc:mysql://localhost:3306/store_db?createDatabaseIfNotExist=true

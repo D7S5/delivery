@@ -4,7 +4,6 @@ server:
 store-service:
   url: http://localhost:8200
 
-
 spring:
   application:
     name: order-service

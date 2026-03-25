@@ -11,5 +11,4 @@ public interface StoreClient {
 
     @GetMapping("/internal/stores/{storeId}")
     ApiResponse<StoreInternalResponse> getInternalStore(@PathVariable("storeId") Long storeId);
-
 }

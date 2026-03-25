@@ -81,7 +81,28 @@ public class Order {
         this.status = OrderStatus.CANCELED;
     }
 
-    public boolean isPaid(){
-        return this.status == OrderStatus.PAID;
+    public void prepared() {
+        if (this.status != OrderStatus.PAID) {
+            throw new IllegalArgumentException("준비중 상태로 변경하려면 결제가 완료되어야합니다.");
+        }
+        this.status = OrderStatus.PREPARING;
+    }
+
+    public void delivery() {
+        if (this.status != OrderStatus.PREPARING) {
+            throw new IllegalArgumentException("배달 상태로 변경하려면 준비중 상태여야 합니다.");
+        }
+        if (this.status == OrderStatus.CANCELED) {
+            throw new IllegalArgumentException("이미 취소된 주문입니다.");
+        }
+
+        this.status = OrderStatus.DELIVERY;
+    }
+
+    public void complete() {
+        if (this.status != OrderStatus.DELIVERY) {
+            throw new IllegalArgumentException("배달 완료를 누르려면 배달 중이여야합니다.");
+        }
+        this.status = OrderStatus.COMPLETED;
     }
 }
