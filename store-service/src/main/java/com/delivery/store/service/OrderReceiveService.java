@@ -66,9 +66,6 @@ public class OrderReceiveService {
         OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
-        System.out.println("orderReceiveId = " + orderReceiveId);
-        System.out.println("current status = " + orderReceive.getStatus());
-
         orderReceive.startPreparing();
 
         return new ApiResponse<>(true, null, "주문이 준비중으로 변경되었습니다.");

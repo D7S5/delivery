@@ -128,4 +128,14 @@ public class AuthService {
                 "refresh"
         );
     }
+    @Transactional
+    public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        cookieUtil.clearRefreshTokenCookie(response);
+
+        return new ApiResponse<>(
+                true,
+                null,
+                "logout"
+        );
+    }
 }

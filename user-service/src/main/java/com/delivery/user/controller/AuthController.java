@@ -34,4 +34,9 @@ public class AuthController {
     public ApiResponse<JwtResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
         return authService.refresh(request, response);
     }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        return authService.logout(request, response);
+    }
 }
