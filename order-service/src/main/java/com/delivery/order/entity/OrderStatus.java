@@ -3,5 +3,8 @@ package com.delivery.order.entity;
 public enum OrderStatus {
     CREATED,
     PAID,
-    CANCELED
+    CANCELED,
+    PREPARING,
+    DELIVERY,
+    COMPLETED,
 }

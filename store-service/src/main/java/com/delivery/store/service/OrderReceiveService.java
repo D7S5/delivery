@@ -67,6 +67,7 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.startPreparing();
+        // startPreparing 전파 코드
 
         return new ApiResponse<>(true, null, "주문이 준비중으로 변경되었습니다.");
     }
@@ -84,6 +85,7 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.startDelivery();
+        // status 전파 코드
 
         return new ApiResponse<>(true, null, "주문이 배달중으로 변경되었습니다.");
     }
@@ -100,6 +102,8 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.complete();
+        // status 전파 코드
+
         return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
     }
 
@@ -115,6 +119,7 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.cancel();
+        // status 전파 코드
         return new ApiResponse<>(true, null, "주문이 취소되었습니다..");
     }
 }
