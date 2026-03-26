@@ -29,6 +29,10 @@ public class OrderReceive {
 
     private String storeName;
 
+    private Double storeLat;
+
+    private Double storeLng;
+
     private String deliveryAddress;
 
     @Enumerated(EnumType.STRING)
@@ -49,6 +53,7 @@ public class OrderReceive {
                         String customerEmail, Long storeId,
                         String storeName, String deliveryAddress,
                         OrderStatus status,
+                        Double storeLat,  Double storeLng,
                         Integer totalAmount, String requestMessage,
                         LocalDateTime createdAt) {
         this.orderId = orderId;
@@ -56,6 +61,8 @@ public class OrderReceive {
         this.customerEmail = customerEmail;
         this.storeId = storeId;
         this.storeName = storeName;
+        this.storeLat = storeLat;
+        this.storeLng = storeLng;
         this.deliveryAddress = deliveryAddress;
         this.status = status;
         this.totalAmount = totalAmount;
@@ -66,6 +73,10 @@ public class OrderReceive {
     public void addItem(OrderReceiveItem item) {
         items.add(item);
         item.assignOrderReceive(this);
+    }
+
+    public void changeStatus(OrderStatus status) {
+        this.status = status;
     }
 
     public void startPreparing() {
