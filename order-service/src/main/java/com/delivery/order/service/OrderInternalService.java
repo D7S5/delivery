@@ -23,7 +23,7 @@ public class OrderInternalService {
 
         order.prepared();
 
-        return new ApiResponse<>(true, null, "주문 중 상태로 변경되었습니다.");
+        return new ApiResponse<>(true, null, "준비중 상태로 변경되었습니다.");
     }
 
     @Transactional
@@ -33,7 +33,7 @@ public class OrderInternalService {
 
         order.delivery();
 
-        return new ApiResponse<>(true, null, "주문 중 상태로 변경되었습니다.");
+        return new ApiResponse<>(true, null, "배달 중 상태로 변경되었습니다.");
     }
 
     @Transactional
@@ -44,7 +44,7 @@ public class OrderInternalService {
 
         order.complete();
 
-        return new ApiResponse<>(true, null, "주문 중 상태로 변경되었습니다.");
+        return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
     }
 
     @Transactional
@@ -55,6 +55,6 @@ public class OrderInternalService {
 
         order.cancel();
 
-        return new ApiResponse<>(true, null, "주문 중 상태로 변경되었습니다.");
+        return new ApiResponse<>(true, null, "주문이 취소되었습니다..");
     }
 }
