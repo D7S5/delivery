@@ -14,6 +14,7 @@
             <option value="$PROJECT_DIR$/gateway-service" />
             <option value="$PROJECT_DIR$/order-service" />
             <option value="$PROJECT_DIR$/payment-service" />
+            <option value="$PROJECT_DIR$/rider-service" />
             <option value="$PROJECT_DIR$/store-service" />
             <option value="$PROJECT_DIR$/user-service" />
           </set>
