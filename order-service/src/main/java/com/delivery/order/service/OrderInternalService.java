@@ -17,7 +17,7 @@ public class OrderInternalService {
     public ApiResponse<Void> prepared(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException(""));
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
 //        Long customerId = order.getCustomerId();
 
@@ -29,7 +29,7 @@ public class OrderInternalService {
     @Transactional
     public ApiResponse<Void> delivery(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException(""));
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
         order.delivery();
 
@@ -40,7 +40,7 @@ public class OrderInternalService {
     public ApiResponse<Void> complete(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException(""));
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
         order.complete();
 
@@ -51,7 +51,7 @@ public class OrderInternalService {
     public ApiResponse<Void> cancel(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException(""));
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
         order.cancel();
 
