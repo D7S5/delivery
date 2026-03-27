@@ -1,12 +1,19 @@
 package com.example.riderservice.service;
 
-import com.example.riderservice.dto.DispatchResponse;
-import com.example.riderservice.entity.*;
+import com.delivery.common.event.DeliveryCompletedEvent;
+import com.delivery.common.event.DeliveryStartedEvent;
+import com.delivery.common.event.OrderReadyForDeliveryEvent;
+import com.example.riderservice.client.OrderServiceClient;
+import com.example.riderservice.dto.OrderStatusResponse;
+import com.example.riderservice.entity.AssignmentStatus;
+import com.example.riderservice.entity.DeliveryAssignment;
+import com.example.riderservice.entity.Rider;
+import com.example.riderservice.entity.RiderStatus;
 import com.example.riderservice.repository.DeliveryAssignmentRepository;
-import com.example.riderservice.repository.OrderReceiveRepository;
 import com.example.riderservice.repository.RiderRepository;
 import com.example.riderservice.util.DistanceUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,156 +25,159 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DispatchService {
 
-    private final OrderReceiveRepository orderReceiveRepository;
     private final RiderRepository riderRepository;
     private final DeliveryAssignmentRepository deliveryAssignmentRepository;
-
-    private static final double MAX_DISPATCH_DISTANCE_KM = 3.0;
-    private static final int ASSIGN_EXPIRE_SECONDS = 30;
-
-    @Transactional
-    public DispatchResponse markReadyAndDispatch(Long orderReceiveId) {
-        OrderReceive order = orderReceiveRepository.findById(orderReceiveId)
-                .orElseThrow(() -> new IllegalArgumentException("주문이 없습니다."));
-
-        order.markReadyForDelivery();
-
-        DeliveryAssignment assignment = dispatch(orderReceiveId);
-
-        if (assignment == null) {
-            return new DispatchResponse(null, orderReceiveId, null, "배차 가능한 라이더가 없습니다.");
-        }
-
-        return new DispatchResponse(
-                assignment.getId(),
-                orderReceiveId,
-                assignment.getRiderId(),
-                "라이더 배차 요청 완료"
-        );
-    }
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OrderServiceClient orderServiceClient;
 
     @Transactional
-    public DeliveryAssignment dispatch(Long orderReceiveId) {
-        OrderReceive order = orderReceiveRepository.findById(orderReceiveId)
-                .orElseThrow(() -> new IllegalArgumentException("주문이 없습니다."));
+    public void dispatch(OrderReadyForDeliveryEvent event) {
+        OrderStatusResponse orderStatus = orderServiceClient.getOrderStatus(event.orderId());
 
-        if (order.getStatus() != OrderStatus.READY_FOR_DELIVERY) {
-            return null;
+        if (!"READY_FOR_DELIVERY".equals(orderStatus.status())) {
+            return;
         }
 
-        boolean exists = deliveryAssignmentRepository.existsByOrderReceiveIdAndStatusIn(
-                orderReceiveId,
-                List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED)
-        );
+        boolean alreadyAssigned =
+                deliveryAssignmentRepository.existsByOrderIdAndStatusIn(
+                        event.orderId(),
+                        List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED)
+                );
 
-        if (exists) {
-            return null;
+        if (alreadyAssigned) {
+            return;
         }
 
-        List<Rider> availableRiders = riderRepository.findByStatusAndLastLocationUpdatedAtAfter(
+        List<Rider> riders = riderRepository.findByStatusAndLastLocationUpdatedAtAfter(
                 RiderStatus.ONLINE,
                 LocalDateTime.now().minusMinutes(3)
         );
 
-        List<RiderDistance> candidates = availableRiders.stream()
+        List<RiderDistance> candidates = riders.stream()
                 .filter(r -> r.getCurrentLat() != null && r.getCurrentLng() != null)
                 .map(r -> new RiderDistance(
                         r,
                         DistanceUtils.calculateKm(
-                                order.getStoreLat(),
-                                order.getStoreLng(),
+                                event.storeLat(),
+                                event.storeLng(),
                                 r.getCurrentLat(),
                                 r.getCurrentLng()
                         )
                 ))
-                .filter(rd -> rd.distanceKm <= MAX_DISPATCH_DISTANCE_KM)
+                .filter(rd -> rd.distanceKm <= 3.0)
                 .sorted(Comparator.comparingDouble(rd -> rd.distanceKm))
                 .toList();
 
         for (RiderDistance candidate : candidates) {
             Rider rider = candidate.rider;
 
-            boolean rejectedBefore = deliveryAssignmentRepository.existsByOrderReceiveIdAndRiderIdAndStatus(
-                    orderReceiveId,
-                    rider.getId(),
-                    AssignmentStatus.REJECTED
-            );
+            boolean rejectedBefore =
+                    deliveryAssignmentRepository.existsByOrderIdAndRiderIdAndStatus(
+                            event.orderId(),
+                            rider.getId(),
+                            AssignmentStatus.REJECTED
+                    );
 
             if (rejectedBefore) {
                 continue;
             }
 
             DeliveryAssignment assignment = DeliveryAssignment.builder()
-                    .orderReceiveId(orderReceiveId)
+                    .orderId(event.orderId())
+                    .orderReceiveId(event.orderReceiveId())
                     .riderId(rider.getId())
                     .status(AssignmentStatus.ASSIGNED)
                     .assignedAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusSeconds(ASSIGN_EXPIRE_SECONDS))
+                    .expiresAt(LocalDateTime.now().plusSeconds(30))
                     .build();
 
-            return deliveryAssignmentRepository.save(assignment);
+            deliveryAssignmentRepository.save(assignment);
+
+            // 여기서 WebSocket/SSE/FCM 등으로 라이더에게 알림 가능
+            return;
+        }
+    }
+
+    @Transactional
+    public void completeDelivery(Long riderUserId, Long assignmentId) {
+        DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new IllegalArgumentException("배차가 없습니다."));
+
+        Rider rider = riderRepository.findByUserId(riderUserId)
+                .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
+
+        if (!assignment.getRiderId().equals(rider.getId())) {
+            throw new IllegalStateException("본인 배달만 완료할 수 있습니다.");
         }
 
-        return null;
+        rider.changeStatus(RiderStatus.ONLINE);
+
+        DeliveryCompletedEvent event = new DeliveryCompletedEvent(
+                assignment.getOrderId(),
+                assignment.getOrderReceiveId(),
+                rider.getId(),
+                LocalDateTime.now()
+        );
+
+        kafkaTemplate.send("delivery.completed", String.valueOf(assignment.getOrderId()), event);
     }
 
     @Transactional
     public void acceptAssignment(Long riderUserId, Long assignmentId) {
         DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new IllegalArgumentException("배차 요청이 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("배차가 없습니다."));
 
         Rider rider = riderRepository.findByUserId(riderUserId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
 
         if (!assignment.getRiderId().equals(rider.getId())) {
-            throw new IllegalStateException("본인에게 온 배차만 수락할 수 있습니다.");
+            throw new IllegalStateException("본인 배차만 수락할 수 있습니다.");
         }
 
-        if (assignment.getExpiresAt() != null && assignment.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (assignment.getExpiresAt().isBefore(LocalDateTime.now())) {
             assignment.expire();
             throw new IllegalStateException("배차 응답 시간이 지났습니다.");
         }
 
         assignment.accept();
-
-        OrderReceive order = orderReceiveRepository.findById(assignment.getOrderReceiveId())
-                .orElseThrow(() -> new IllegalArgumentException("주문이 없습니다."));
-
-        order.startDelivery(rider.getId());
         rider.changeStatus(RiderStatus.DELIVERING);
+
+        DeliveryStartedEvent event = new DeliveryStartedEvent(
+                assignment.getOrderId(),
+                assignment.getOrderReceiveId(),
+                rider.getId(),
+                LocalDateTime.now()
+        );
+
+        kafkaTemplate.send("delivery.started", String.valueOf(assignment.getOrderId()), event);
     }
 
     @Transactional
     public void rejectAssignment(Long riderUserId, Long assignmentId) {
         DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new IllegalArgumentException("배차 요청이 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("배차가 없습니다."));
 
         Rider rider = riderRepository.findByUserId(riderUserId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
 
         if (!assignment.getRiderId().equals(rider.getId())) {
-            throw new IllegalStateException("본인에게 온 배차만 거절할 수 있습니다.");
+            throw new IllegalStateException("본인 배차만 거절할 수 있습니다.");
         }
 
         assignment.reject();
 
-        dispatch(assignment.getOrderReceiveId());
-    }
+        OrderReadyForDeliveryEvent retryEvent = new OrderReadyForDeliveryEvent(
+                assignment.getOrderId(),
+                assignment.getOrderReceiveId(),
+                null,
+                null,
+                null,
+                null,
+                LocalDateTime.now()
+        );
 
-    @Transactional
-    public void completeDelivery(Long riderUserId, Long orderReceiveId) {
-        Rider rider = riderRepository.findByUserId(riderUserId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
-
-        OrderReceive order = orderReceiveRepository.findById(orderReceiveId)
-                .orElseThrow(() -> new IllegalArgumentException("주문이 없습니다."));
-
-        if (order.getRiderId() == null || !order.getRiderId().equals(rider.getId())) {
-            throw new IllegalStateException("본인이 맡은 주문만 완료 처리할 수 있습니다.");
-        }
-
-        order.completeDelivery();
-        rider.changeStatus(RiderStatus.ONLINE);
+        // 여기서는 store 좌표가 필요하니 실전에서는 assignment에 storeLat/storeLng를 같이 넣거나
+        // store-service Feign 조회를 추가하는 편이 좋습니다.
     }
 
     private static class RiderDistance {

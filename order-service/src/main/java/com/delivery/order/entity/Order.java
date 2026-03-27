@@ -105,4 +105,8 @@ public class Order {
         }
         this.status = OrderStatus.COMPLETED;
     }
+
+    public void changeStatus(OrderStatus orderStatus) {
+        this.status = orderStatus;
+    }
 }

@@ -69,7 +69,6 @@ public class OrderReceiveService {
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
         orderReceive.startPreparing();
-        System.out.println(orderReceive.getOrderId());
         orderClient.prepared(orderReceive.getOrderId());
 
         return new ApiResponse<>(true, null, "주문이 준비중으로 변경되었습니다.");

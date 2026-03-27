@@ -1,5 +1,6 @@
 package com.delivery.store.service;
 
+import com.delivery.common.event.OrderCanceledEvent;
 import com.delivery.common.event.OrderReadyForDeliveryEvent;
 import com.delivery.store.entity.OrderReceive;
 import com.delivery.store.entity.OrderStatus;
@@ -42,5 +43,22 @@ public class StoreOrderService {
         );
 
         kafkaTemplate.send(topic, String.valueOf(order.getOrderId()), event);
+    }
+
+    @Transactional
+    public void cancelOrder(Long orderReceiveId) {
+        OrderReceive order = orderReceiveRepository.findById(orderReceiveId)
+                .orElseThrow(() -> new IllegalArgumentException("주문이 없습니다."));
+
+        order.changeStatus(OrderStatus.CANCELED);
+
+        OrderCanceledEvent event = new OrderCanceledEvent(
+                order.getOrderId(),
+                order.getId(),
+                "store canceled",
+                LocalDateTime.now()
+        );
+
+        kafkaTemplate.send("order.canceled", String.valueOf(order.getOrderId()), event);
     }
 }
