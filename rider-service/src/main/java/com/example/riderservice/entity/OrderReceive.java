@@ -33,7 +33,6 @@ public class OrderReceive {
     private Double storeLat;
     private Double storeLng;
 
-    // 배달 담당 라이더
     private Long riderId;
 
     @Enumerated(EnumType.STRING)

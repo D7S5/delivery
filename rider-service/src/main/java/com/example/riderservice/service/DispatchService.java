@@ -4,7 +4,6 @@ import com.delivery.common.event.DeliveryCompletedEvent;
 import com.delivery.common.event.DeliveryStartedEvent;
 import com.delivery.common.event.OrderReadyForDeliveryEvent;
 import com.example.riderservice.client.OrderServiceClient;
-import com.example.riderservice.dto.OrderStatusResponse;
 import com.example.riderservice.entity.AssignmentStatus;
 import com.example.riderservice.entity.DeliveryAssignment;
 import com.example.riderservice.entity.Rider;
@@ -20,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,21 +29,19 @@ public class DispatchService {
     private final DeliveryAssignmentRepository deliveryAssignmentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OrderServiceClient orderServiceClient;
+    private final StoreOrderSyncService storeOrderSyncService;
 
     @Transactional
     public void dispatch(OrderReadyForDeliveryEvent event) {
-        OrderStatusResponse orderStatus = orderServiceClient.getOrderStatus(event.orderId());
-
-        if (!"READY_FOR_DELIVERY".equals(orderStatus.status())) {
+        Map<String, String> orderStatus = orderServiceClient.getOrderStatus(event.orderId());
+        if (!"READY_FOR_DELIVERY".equals(orderStatus.get("status"))) {
             return;
         }
 
-        boolean alreadyAssigned =
-                deliveryAssignmentRepository.existsByOrderIdAndStatusIn(
-                        event.orderId(),
-                        List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED)
-                );
-
+        boolean alreadyAssigned = deliveryAssignmentRepository.existsByOrderIdAndStatusIn(
+                event.orderId(),
+                List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED)
+        );
         if (alreadyAssigned) {
             return;
         }
@@ -71,13 +69,11 @@ public class DispatchService {
         for (RiderDistance candidate : candidates) {
             Rider rider = candidate.rider;
 
-            boolean rejectedBefore =
-                    deliveryAssignmentRepository.existsByOrderIdAndRiderIdAndStatus(
-                            event.orderId(),
-                            rider.getId(),
-                            AssignmentStatus.REJECTED
-                    );
-
+            boolean rejectedBefore = deliveryAssignmentRepository.existsByOrderIdAndRiderIdAndStatus(
+                    event.orderId(),
+                    rider.getId(),
+                    AssignmentStatus.REJECTED
+            );
             if (rejectedBefore) {
                 continue;
             }
@@ -92,34 +88,8 @@ public class DispatchService {
                     .build();
 
             deliveryAssignmentRepository.save(assignment);
-
-            // 여기서 WebSocket/SSE/FCM 등으로 라이더에게 알림 가능
             return;
         }
-    }
-
-    @Transactional
-    public void completeDelivery(Long riderUserId, Long assignmentId) {
-        DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new IllegalArgumentException("배차가 없습니다."));
-
-        Rider rider = riderRepository.findByUserId(riderUserId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
-
-        if (!assignment.getRiderId().equals(rider.getId())) {
-            throw new IllegalStateException("본인 배달만 완료할 수 있습니다.");
-        }
-
-        rider.changeStatus(RiderStatus.ONLINE);
-
-        DeliveryCompletedEvent event = new DeliveryCompletedEvent(
-                assignment.getOrderId(),
-                assignment.getOrderReceiveId(),
-                rider.getId(),
-                LocalDateTime.now()
-        );
-
-        kafkaTemplate.send("delivery.completed", String.valueOf(assignment.getOrderId()), event);
     }
 
     @Transactional
@@ -142,13 +112,15 @@ public class DispatchService {
         assignment.accept();
         rider.changeStatus(RiderStatus.DELIVERING);
 
+        storeOrderSyncService.startDelivery(assignment.getOrderReceiveId());
+        orderServiceClient.markDelivery(assignment.getOrderId());
+
         DeliveryStartedEvent event = new DeliveryStartedEvent(
                 assignment.getOrderId(),
                 assignment.getOrderReceiveId(),
                 rider.getId(),
                 LocalDateTime.now()
         );
-
         kafkaTemplate.send("delivery.started", String.valueOf(assignment.getOrderId()), event);
     }
 
@@ -165,28 +137,35 @@ public class DispatchService {
         }
 
         assignment.reject();
-
-        OrderReadyForDeliveryEvent retryEvent = new OrderReadyForDeliveryEvent(
-                assignment.getOrderId(),
-                assignment.getOrderReceiveId(),
-                null,
-                null,
-                null,
-                null,
-                LocalDateTime.now()
-        );
-
-        // 여기서는 store 좌표가 필요하니 실전에서는 assignment에 storeLat/storeLng를 같이 넣거나
-        // store-service Feign 조회를 추가하는 편이 좋습니다.
     }
 
-    private static class RiderDistance {
-        private final Rider rider;
-        private final double distanceKm;
+    @Transactional
+    public void completeDelivery(Long riderUserId, Long orderReceiveId) {
+        Rider rider = riderRepository.findByUserId(riderUserId)
+                .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
 
-        private RiderDistance(Rider rider, double distanceKm) {
-            this.rider = rider;
-            this.distanceKm = distanceKm;
+        DeliveryAssignment assignment = deliveryAssignmentRepository
+                .findTopByOrderReceiveIdAndRiderIdOrderByIdDesc(orderReceiveId, rider.getId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 주문에 대한 배차가 없습니다."));
+
+        if (assignment.getStatus() != AssignmentStatus.ACCEPTED) {
+            throw new IllegalStateException("수락된 배차만 완료 처리할 수 있습니다.");
         }
+
+        rider.changeStatus(RiderStatus.ONLINE);
+
+        storeOrderSyncService.completeDelivery(orderReceiveId);
+        orderServiceClient.markComplete(assignment.getOrderId());
+
+        DeliveryCompletedEvent event = new DeliveryCompletedEvent(
+                assignment.getOrderId(),
+                assignment.getOrderReceiveId(),
+                rider.getId(),
+                LocalDateTime.now()
+        );
+        kafkaTemplate.send("delivery.completed", String.valueOf(assignment.getOrderId()), event);
+    }
+
+    private record RiderDistance(Rider rider, double distanceKm) {
     }
 }

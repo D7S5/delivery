@@ -1,6 +1,5 @@
 package com.delivery.store.entity;
 
-import com.delivery.store.dto.StoreOrderItemDto;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,17 +19,13 @@ public class OrderReceive {
     private Long id;
 
     private Long orderId;
-
     private Long customerId;
-
     private String customerEmail;
 
     private Long storeId;
-
     private String storeName;
 
     private Double storeLat;
-
     private Double storeLng;
 
     private String deliveryAddress;
@@ -40,22 +35,27 @@ public class OrderReceive {
     private OrderStatus status;
 
     private Integer totalAmount;
-
     private String requestMessage;
-
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "orderReceive", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderReceiveItem> items = new ArrayList<>();
 
     @Builder
-    public OrderReceive(Long orderId, Long customerId,
-                        String customerEmail, Long storeId,
-                        String storeName, String deliveryAddress,
-                        OrderStatus status,
-                        Double storeLat,  Double storeLng,
-                        Integer totalAmount, String requestMessage,
-                        LocalDateTime createdAt) {
+    public OrderReceive(
+            Long orderId,
+            Long customerId,
+            String customerEmail,
+            Long storeId,
+            String storeName,
+            String deliveryAddress,
+            OrderStatus status,
+            Double storeLat,
+            Double storeLng,
+            Integer totalAmount,
+            String requestMessage,
+            LocalDateTime createdAt
+    ) {
         this.orderId = orderId;
         this.customerId = customerId;
         this.customerEmail = customerEmail;
@@ -88,9 +88,16 @@ public class OrderReceive {
 
     public void markReadyForDelivery() {
         if (this.status != OrderStatus.PREPARING) {
-            throw new IllegalArgumentException("준비 중 상태의 주문만 배달 상태로 변경할 수 있습니다.");
+            throw new IllegalArgumentException("준비 중 상태의 주문만 배차 대기 상태로 변경할 수 있습니다.");
         }
         this.status = OrderStatus.READY_FOR_DELIVERY;
+    }
+
+    public void startDelivery() {
+        if (this.status != OrderStatus.READY_FOR_DELIVERY) {
+            throw new IllegalArgumentException("배차 대기 상태의 주문만 배달 상태로 변경할 수 있습니다.");
+        }
+        this.status = OrderStatus.DELIVERY;
     }
 
     public void complete() {
