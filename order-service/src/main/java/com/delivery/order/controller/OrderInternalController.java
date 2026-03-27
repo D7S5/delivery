@@ -14,27 +14,28 @@ public class OrderInternalController {
 
     private final OrderInternalService service;
 
-    @PatchMapping("/{orderId}/prepared")
+    @PutMapping("/{orderId}/prepared")
     public ApiResponse<Void> prepared(@PathVariable Long orderId) {
+        System.out.println("internal prepared orderId = " + orderId);
         return service.prepared(orderId);
     }
 
-    @PatchMapping("/{orderId}/ready")
+    @PutMapping("/{orderId}/ready")
     public ApiResponse<Void> ready(@PathVariable Long orderId) {
         return service.ready(orderId);
     }
 
-    @PatchMapping("/{orderId}/delivery")
+    @PutMapping("/{orderId}/delivery")
     public ApiResponse<Void> delivery(@PathVariable Long orderId) {
         return service.delivery(orderId);
     }
 
-    @PatchMapping("/{orderId}/complete")
+    @PutMapping("/{orderId}/complete")
     public ApiResponse<Void> orderComplete(@PathVariable Long orderId) {
         return service.complete(orderId);
     }
 
-    @PatchMapping("/{orderId}/cancel")
+    @PutMapping("/{orderId}/cancel")
     public ApiResponse<Void> cancel(@PathVariable Long orderId) {
         return service.cancel(orderId);
     }

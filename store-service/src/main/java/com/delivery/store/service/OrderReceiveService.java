@@ -58,6 +58,8 @@ public class OrderReceiveService {
         validateOwner(role);
 
         OrderReceive orderReceive = getMyStoreOrder(userId, orderReceiveId);
+
+        System.out.println("Preparing " + orderReceive.getStatus());
         orderReceive.startPreparing();
         orderClient.prepared(orderReceive.getOrderId());
 

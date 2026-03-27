@@ -19,6 +19,7 @@ public class OrderInternalService {
     @Transactional
     public ApiResponse<Void> prepared(Long orderId) {
         Order order = getOrder(orderId);
+        System.out.println(order.getStatus());
         order.prepared();
         return new ApiResponse<>(true, null, "주문이 준비중 상태로 변경되었습니다.");
     }
