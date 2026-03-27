@@ -86,11 +86,11 @@ public class OrderReceive {
         this.status = OrderStatus.PREPARING;
     }
 
-    public void startDelivery() {
+    public void markReadyForDelivery() {
         if (this.status != OrderStatus.PREPARING) {
             throw new IllegalArgumentException("준비 중 상태의 주문만 배달 상태로 변경할 수 있습니다.");
         }
-        this.status = OrderStatus.DELIVERY;
+        this.status = OrderStatus.READY_FOR_DELIVERY;
     }
 
     public void complete() {

@@ -75,8 +75,8 @@ public class OrderReceiveService {
     }
 
     @Transactional
-    public ApiResponse<Void> startDelivery(Long userId, String role, Long orderReceiveId) {
-        if (!"RIDER".equals(role)) {
+    public ApiResponse<Void> markReadyForDelivery(Long userId, String role, Long orderReceiveId) {
+        if (!"OWNER".equals(role)) {
             throw new IllegalArgumentException("점주만 주문을 배달 상태로 변경할 수 있습니다.");
         }
 
@@ -86,10 +86,9 @@ public class OrderReceiveService {
         OrderReceive orderReceive = orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
 
-        orderReceive.startDelivery();
-        orderClient.delivery(orderReceive.getOrderId());
+        orderReceive.markReadyForDelivery();
 
-        return new ApiResponse<>(true, null, "주문이 배달중으로 변경되었습니다.");
+        return new ApiResponse<>(true, null, "준비완료 상태로 변경되었습니다.");
     }
 
     @Transactional

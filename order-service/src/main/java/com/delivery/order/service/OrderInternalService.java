@@ -26,26 +26,40 @@ public class OrderInternalService {
         return new ApiResponse<>(true, null, "준비중 상태로 변경되었습니다.");
     }
 
-    @Transactional
-    public ApiResponse<Void> delivery(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+//    @Transactional
+//    public ApiResponse<Void> ready(Long orderId) {
+//
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+//
+////        Long customerId = order.getCustomerId();
+//
+//        order.
+//
+//        return new ApiResponse<>(true, null, "준비중 상태로 변경되었습니다.");
+//    }
 
-        order.delivery();
 
-        return new ApiResponse<>(true, null, "배달 중 상태로 변경되었습니다.");
-    }
-
-    @Transactional
-    public ApiResponse<Void> complete(Long orderId) {
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
-
-        order.complete();
-
-        return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
-    }
+//    @Transactional
+//    public ApiResponse<Void> delivery(Long orderId) {
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+//
+//        order.delivery();
+//
+//        return new ApiResponse<>(true, null, "배달 중 상태로 변경되었습니다.");
+//    }
+//
+//    @Transactional
+//    public ApiResponse<Void> complete(Long orderId) {
+//
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+//
+//        order.complete();
+//
+//        return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
+//    }
 
     @Transactional
     public ApiResponse<Void> cancel(Long orderId) {

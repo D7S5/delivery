@@ -22,8 +22,6 @@ public class OrderReceiveController {
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String role
     ) {
-        System.out.println("X-User-Id = " + userId);
-        System.out.println("X-User-Role = " + role);
         return orderReceiveService.getMyStoreOrders(userId, role);
     }
 
@@ -33,8 +31,6 @@ public class OrderReceiveController {
             @RequestHeader("X-User-Role") String role,
             @PathVariable Long orderReceiveId
     ) {
-        System.out.println("X-User-Id = " + userId);
-        System.out.println("X-User-Role = " + role);
         return orderReceiveService.getMyStoreOrderDetail(userId, role, orderReceiveId);
     }
 
@@ -44,28 +40,36 @@ public class OrderReceiveController {
             @RequestHeader("X-User-Role") String role,
             @PathVariable Long orderReceiveId
     ) {
-        System.out.println("X-User-Id = " + userId);
-        System.out.println("X-User-Role = " + role);
         return orderReceiveService.startPreparing(userId, role, orderReceiveId);
     }
 
-    @PatchMapping("/{orderReceiveId}/delivery")
-    public ApiResponse<Void> startDelivery(
+    @PatchMapping("/{orderReceiveId}/ready")
+    public ApiResponse<Void> ready(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String role,
             @PathVariable Long orderReceiveId
     ) {
-        return orderReceiveService.startDelivery(userId, role, orderReceiveId);
+        return orderReceiveService.markReadyForDelivery(userId, role, orderReceiveId);
     }
 
-    @PatchMapping("/{orderReceiveId}/complete")
-    public ApiResponse<Void> complete(
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role,
-            @PathVariable Long orderReceiveId
-    ) {
-        return orderReceiveService.completeOrder(userId, role, orderReceiveId);
-    }
+
+//    @PatchMapping("/{orderReceiveId}/delivery")
+//    public ApiResponse<Void> startDelivery(
+//            @RequestHeader("X-User-Id") Long userId,
+//            @RequestHeader("X-User-Role") String role,
+//            @PathVariable Long orderReceiveId
+//    ) {
+//        return orderReceiveService.startDelivery(userId, role, orderReceiveId);
+//    }
+//
+//    @PatchMapping("/{orderReceiveId}/complete")
+//    public ApiResponse<Void> complete(
+//            @RequestHeader("X-User-Id") Long userId,
+//            @RequestHeader("X-User-Role") String role,
+//            @PathVariable Long orderReceiveId
+//    ) {
+//        return orderReceiveService.completeOrder(userId, role, orderReceiveId);
+//    }
 
     @PatchMapping("/{orderReceiveId}/cancel")
     public ApiResponse<Void> cancelOrder(
