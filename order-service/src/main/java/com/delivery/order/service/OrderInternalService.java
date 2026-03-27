@@ -19,7 +19,6 @@ public class OrderInternalService {
     @Transactional
     public ApiResponse<Void> prepared(Long orderId) {
         Order order = getOrder(orderId);
-        System.out.println(order.getStatus());
         order.prepared();
         return new ApiResponse<>(true, null, "주문이 준비중 상태로 변경되었습니다.");
     }
@@ -27,12 +26,13 @@ public class OrderInternalService {
     @Transactional
     public ApiResponse<Void> ready(Long orderId) {
         Order order = getOrder(orderId);
-
+        System.out.println(order.getStatus());
         if (order.getStatus() != OrderStatus.PREPARING) {
             throw new IllegalArgumentException("준비중 상태에서만 배차 대기 상태로 변경할 수 있습니다.");
         }
 
         order.changeStatus(OrderStatus.READY_FOR_DELIVERY);
+        System.out.println("ready ===> READY_FOR_DELIVERY " + order.getStatus());
         return new ApiResponse<>(true, null, "주문이 배차 대기 상태로 변경되었습니다.");
     }
 

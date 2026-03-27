@@ -1,6 +1,7 @@
 server:
   port: 8600
 
+
 spring:
   application:
     name: rider-service
@@ -18,25 +19,26 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: rider-dispatch-group
+      group-id: rider-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.delivery.common.event"
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.delivery.common.event.OrderReadyForDeliveryEvent
     producer:
       acks: all
       retries: 3
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+topics:
+  order-ready-for-delivery: order.ready-for-delivery
+  delivery-started: delivery.started
+  delivery-completed: delivery.completed
+
 order-service:
   url: http://localhost:8300
 
 store-service:
   url: http://localhost:8200
-
-topics:
-  order-ready-for-delivery: order.ready-for-delivery
-  delivery-started: delivery.started
-  delivery-completed: delivery.completed

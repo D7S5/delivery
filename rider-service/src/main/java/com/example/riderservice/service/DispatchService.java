@@ -31,9 +31,12 @@ public class DispatchService {
     private final OrderServiceClient orderServiceClient;
     private final StoreOrderSyncService storeOrderSyncService;
 
+    // 배차 후보 찾는 로직
     @Transactional
     public void dispatch(OrderReadyForDeliveryEvent event) {
         Map<String, String> orderStatus = orderServiceClient.getOrderStatus(event.orderId());
+
+        System.out.println(orderStatus);
         if (!"READY_FOR_DELIVERY".equals(orderStatus.get("status"))) {
             return;
         }
@@ -92,6 +95,7 @@ public class DispatchService {
         }
     }
 
+    // 배차 수락
     @Transactional
     public void acceptAssignment(Long riderUserId, Long assignmentId) {
         DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
@@ -124,6 +128,7 @@ public class DispatchService {
         kafkaTemplate.send("delivery.started", String.valueOf(assignment.getOrderId()), event);
     }
 
+    // 배차 거절
     @Transactional
     public void rejectAssignment(Long riderUserId, Long assignmentId) {
         DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
@@ -138,7 +143,7 @@ public class DispatchService {
 
         assignment.reject();
     }
-
+//  배달 완료 처리
     @Transactional
     public void completeDelivery(Long riderUserId, Long orderReceiveId) {
         Rider rider = riderRepository.findByUserId(riderUserId)
@@ -165,7 +170,6 @@ public class DispatchService {
         );
         kafkaTemplate.send("delivery.completed", String.valueOf(assignment.getOrderId()), event);
     }
-
     private record RiderDistance(Rider rider, double distanceKm) {
     }
 }

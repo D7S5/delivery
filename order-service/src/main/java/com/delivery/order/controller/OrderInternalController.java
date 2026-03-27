@@ -22,6 +22,7 @@ public class OrderInternalController {
 
     @PutMapping("/{orderId}/ready")
     public ApiResponse<Void> ready(@PathVariable Long orderId) {
+        System.out.println("============== ready ================");
         return service.ready(orderId);
     }
 

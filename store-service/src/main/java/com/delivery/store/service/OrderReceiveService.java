@@ -59,7 +59,6 @@ public class OrderReceiveService {
 
         OrderReceive orderReceive = getMyStoreOrder(userId, orderReceiveId);
 
-        System.out.println("Preparing " + orderReceive.getStatus());
         orderReceive.startPreparing();
         orderClient.prepared(orderReceive.getOrderId());
 
@@ -73,8 +72,19 @@ public class OrderReceiveService {
         OrderReceive orderReceive = getMyStoreOrder(userId, orderReceiveId);
         orderReceive.markReadyForDelivery();
 
-        orderClient.ready(orderReceive.getOrderId());
-        orderReadyForDeliveryProducer.publish(orderReceive);
+        try {
+            orderClient.ready(orderReceive.getOrderId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        try {
+            orderReadyForDeliveryProducer.publish(orderReceive);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
 
         return new ApiResponse<>(true, null, "준비완료 및 라이더 배차 요청이 처리되었습니다.");
     }
