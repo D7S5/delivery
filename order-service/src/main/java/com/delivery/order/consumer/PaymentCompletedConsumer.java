@@ -42,6 +42,7 @@ public class PaymentCompletedConsumer {
 
         if (processedEventRepository.existsByEventId(event.eventId())) {
             return;
+
         }
 
         Order order = orderRepository.findById(event.orderId())

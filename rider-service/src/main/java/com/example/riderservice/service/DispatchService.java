@@ -34,7 +34,7 @@ public class DispatchService {
     // 배차 후보 찾는 로직
     @Transactional
     public void dispatch(OrderReadyForDeliveryEvent event) {
-        Map<String, String> orderStatus = orderServiceClient.getOrderStatus(event.orderId());
+        Map<String, Object> orderStatus = orderServiceClient.getOrderStatus(event.orderId());
 
         System.out.println(orderStatus);
         if (!"READY_FOR_DELIVERY".equals(orderStatus.get("status"))) {
