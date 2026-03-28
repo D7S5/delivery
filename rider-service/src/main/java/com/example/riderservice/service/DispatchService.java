@@ -32,68 +32,119 @@ public class DispatchService {
     private final StoreOrderSyncService storeOrderSyncService;
 
     // 배차 후보 찾는 로직
+
     @Transactional
     public void dispatch(OrderReadyForDeliveryEvent event) {
-        Map<String, Object> orderStatus = orderServiceClient.getOrderStatus(event.orderId());
+        System.out.println("dispatch 호출됨");
+        System.out.println("event = " + event);
 
-        System.out.println(orderStatus);
-        if (!"READY_FOR_DELIVERY".equals(orderStatus.get("status"))) {
-            return;
-        }
-
+        // 1. 이미 배정된 주문인지 확인
         boolean alreadyAssigned = deliveryAssignmentRepository.existsByOrderIdAndStatusIn(
                 event.orderId(),
                 List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED)
         );
+
+        System.out.println("alreadyAssigned = " + alreadyAssigned);
+
         if (alreadyAssigned) {
+            System.out.println("이미 배정된 주문이라 종료");
             return;
         }
 
-        List<Rider> riders = riderRepository.findByStatusAndLastLocationUpdatedAtAfter(
-                RiderStatus.ONLINE,
-                LocalDateTime.now().minusMinutes(3)
-        );
+        // 2. 온라인 라이더 한 명 조회
+        List<Rider> riders = riderRepository.findByStatus(RiderStatus.ONLINE);
 
-        List<RiderDistance> candidates = riders.stream()
-                .filter(r -> r.getCurrentLat() != null && r.getCurrentLng() != null)
-                .map(r -> new RiderDistance(
-                        r,
-                        DistanceUtils.calculateKm(
-                                event.storeLat(),
-                                event.storeLng(),
-                                r.getCurrentLat(),
-                                r.getCurrentLng()
-                        )
-                ))
-                .filter(rd -> rd.distanceKm <= 3.0)
-                .sorted(Comparator.comparingDouble(rd -> rd.distanceKm))
-                .toList();
+        System.out.println("online riders = " + riders);
 
-        for (RiderDistance candidate : candidates) {
-            Rider rider = candidate.rider;
-
-            boolean rejectedBefore = deliveryAssignmentRepository.existsByOrderIdAndRiderIdAndStatus(
-                    event.orderId(),
-                    rider.getId(),
-                    AssignmentStatus.REJECTED
-            );
-            if (rejectedBefore) {
-                continue;
-            }
-
-            DeliveryAssignment assignment = DeliveryAssignment.builder()
-                    .orderId(event.orderId())
-                    .orderReceiveId(event.orderReceiveId())
-                    .riderId(rider.getId())
-                    .status(AssignmentStatus.ASSIGNED)
-                    .assignedAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusSeconds(30))
-                    .build();
-
-            deliveryAssignmentRepository.save(assignment);
+        if (riders.isEmpty()) {
+            System.out.println("온라인 라이더 없음");
             return;
         }
+
+        // 3. 첫 번째 라이더에게 바로 배정
+        Rider rider = riders.get(0);
+
+        DeliveryAssignment assignment = DeliveryAssignment.builder()
+                .orderId(event.orderId())
+                .orderReceiveId(event.orderReceiveId())
+                .riderId(rider.getId())
+                .status(AssignmentStatus.ASSIGNED)
+                .assignedAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(5))
+                .build();
+
+        deliveryAssignmentRepository.save(assignment);
+
+        System.out.println("배차 저장 완료 = " + assignment);
     }
+//    @Transactional
+//    public void dispatch(OrderReadyForDeliveryEvent event) {
+//        Map<String, Object> orderStatus = orderServiceClient.getOrderStatus(event.orderId());
+//
+//        System.out.println(orderStatus);
+//        if (!"READY_FOR_DELIVERY".equals(orderStatus.get("status"))) {
+//            return;
+//        }
+//
+//        boolean alreadyAssigned = deliveryAssignmentRepository.existsByOrderIdAndStatusIn(
+//                event.orderId(),
+//                List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED)
+//        );
+//
+//        System.out.println("=============" + alreadyAssigned);
+//        if (alreadyAssigned) {
+//            return;
+//        }
+//
+//        List<Rider> riders = riderRepository.findByStatusAndLastLocationUpdatedAtAfter(
+//                RiderStatus.ONLINE,
+//                LocalDateTime.now().minusMinutes(3)
+//        );
+//        System.out.println("========================" + riders);
+//
+//        List<RiderDistance> candidates = riders.stream()
+//                .filter(r -> r.getCurrentLat() != null && r.getCurrentLng() != null)
+//                .map(r -> new RiderDistance(
+//                        r,
+//                        DistanceUtils.calculateKm(
+//                                event.storeLat(),
+//                                event.storeLng(),
+//                                r.getCurrentLat(),
+//                                r.getCurrentLng()
+//                        )
+//                ))
+//                .filter(rd -> rd.distanceKm <= 3.0)
+//                .sorted(Comparator.comparingDouble(rd -> rd.distanceKm))
+//                .toList();
+//
+//        System.out.println("=====================" + candidates);
+//        for (RiderDistance candidate : candidates) {
+//            Rider rider = candidate.rider;
+//
+//            boolean rejectedBefore = deliveryAssignmentRepository.existsByOrderIdAndRiderIdAndStatus(
+//                    event.orderId(),
+//                    rider.getId(),
+//                    AssignmentStatus.REJECTED
+//            );
+//            if (rejectedBefore) {
+//                continue;
+//            }
+//
+//            DeliveryAssignment assignment = DeliveryAssignment.builder()
+//                    .orderId(event.orderId())
+//                    .orderReceiveId(event.orderReceiveId())
+//                    .riderId(rider.getId())
+//                    .status(AssignmentStatus.ASSIGNED)
+//                    .assignedAt(LocalDateTime.now())
+//                    .expiresAt(LocalDateTime.now().plusSeconds(30))
+//                    .build();
+//
+//            System.out.println("=================" + assignment);
+//
+//            deliveryAssignmentRepository.save(assignment);
+//            return;
+//        }
+//    }
 
     // 배차 수락
     @Transactional

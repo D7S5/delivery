@@ -70,17 +70,25 @@ public class OrderReceiveService {
         validateOwner(role);
 
         OrderReceive orderReceive = getMyStoreOrder(userId, orderReceiveId);
+        System.out.println("1. 조회 성공");
+        System.out.println("2. 상태 변경 전 = " + orderReceive.getStatus());
+
         orderReceive.markReadyForDelivery();
+        System.out.println("3. 상태 변경 후 = " + orderReceive.getStatus());
 
         try {
+            System.out.println("4. orderClient.ready 호출 직전");
             orderClient.ready(orderReceive.getOrderId());
+            System.out.println("5. orderClient.ready 호출 직후");
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
 
         try {
+            System.out.println("6. publish 호출 직전");
             orderReadyForDeliveryProducer.publish(orderReceive);
+            System.out.println("7. publish 호출 직후");
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -88,7 +96,6 @@ public class OrderReceiveService {
 
         return new ApiResponse<>(true, null, "준비완료 및 라이더 배차 요청이 처리되었습니다.");
     }
-
     @Transactional
     public ApiResponse<Void> startDeliveryByRider(Long orderReceiveId) {
         OrderReceive orderReceive = orderReceiveRepository.findById(orderReceiveId)

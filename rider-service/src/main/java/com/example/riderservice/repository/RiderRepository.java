@@ -13,4 +13,6 @@ public interface RiderRepository extends JpaRepository<Rider, Long> {
     Optional<Rider> findByUserId(Long userId);
 
     List<Rider> findByStatusAndLastLocationUpdatedAtAfter(RiderStatus status, LocalDateTime threshold);
+
+    List<Rider> findByStatus(RiderStatus riderStatus);
 }

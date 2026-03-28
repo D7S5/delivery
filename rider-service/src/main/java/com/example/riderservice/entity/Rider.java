@@ -26,6 +26,12 @@ public class Rider {
 
     private LocalDateTime lastLocationUpdatedAt;
 
+    public Rider(Long userId, String riderName, RiderStatus status) {
+        this.userId = userId;
+        this.riderName = riderName;
+        this.status = status;
+    }
+
     public void updateLocation(Double lat, Double lng) {
         this.currentLat = lat;
         this.currentLng = lng;
