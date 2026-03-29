@@ -1,41 +1,38 @@
 package com.example.riderservice.controller;
 
-import com.example.riderservice.dto.OnlineRequest;
+import com.delivery.common.ApiResponse;
 import com.example.riderservice.dto.RiderLocationRequest;
+import com.example.riderservice.dto.RiderStatusResponse;
 import com.example.riderservice.service.RiderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/rider")
+@RequestMapping("/api/riders")
 @RequiredArgsConstructor
 public class RiderController {
 
     private final RiderService riderService;
 
-    @PatchMapping("/location")
-    public String updateLocation(
+    @GetMapping("/me/status")
+    public ApiResponse<RiderStatusResponse> getMyStatus(
+            @RequestHeader("X-User-Id") Long userId
+    ) {
+        return riderService.getMyStatus(userId);
+    }
+
+    @PutMapping("/me/online")
+    public ApiResponse<Void> setOnline(
             @RequestHeader("X-User-Id") Long userId,
             @RequestBody RiderLocationRequest request
     ) {
-        riderService.updateLocation(userId, request);
-        return "위치 업데이트 완료";
+        return riderService.setOnline(userId, request);
     }
 
-    @PostMapping("/online")
-    public String online(@RequestHeader("X-User-Id") Long userId,
-                         @RequestBody OnlineRequest request) {
-        System.out.println("온라인 전환");
-        System.out.println(userId);
-        riderService.changeOnline(userId, request);
-        return "온라인 전환 완료";
-    }
-
-    @PostMapping("/offline")
-    public String offline(@RequestHeader("X-User-Id") Long userId) {
-        System.out.println("오프라인 전환");
-        riderService.changeOffline(userId);
-        return "오프라인 전환 완료";
+    @PutMapping("/me/offline")
+    public ApiResponse<Void> setOffline(
+            @RequestHeader("X-User-Id") Long userId
+    ) {
+        return riderService.setOffline(userId);
     }
 }
-

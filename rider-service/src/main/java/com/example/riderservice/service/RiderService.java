@@ -1,7 +1,8 @@
 package com.example.riderservice.service;
 
-import com.example.riderservice.dto.OnlineRequest;
+import com.delivery.common.ApiResponse;
 import com.example.riderservice.dto.RiderLocationRequest;
+import com.example.riderservice.dto.RiderStatusResponse;
 import com.example.riderservice.entity.Rider;
 import com.example.riderservice.entity.RiderStatus;
 import com.example.riderservice.repository.RiderRepository;
@@ -15,26 +16,38 @@ public class RiderService {
 
     private final RiderRepository riderRepository;
 
-    @Transactional
-    public void updateLocation(Long userId, RiderLocationRequest request) {
+    @Transactional(readOnly = true)
+    public ApiResponse<RiderStatusResponse> getMyStatus(Long userId) {
         Rider rider = riderRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("라이더 정보를 찾을 수 없습니다."));
 
-        rider.updateLocation(request.lat(), request.lng());
+        RiderStatusResponse response = new RiderStatusResponse(
+                rider.getId(),
+                rider.getUserId(),
+                rider.getStatus(),
+                rider.getStatus() == RiderStatus.ONLINE
+        );
+
+        return new ApiResponse<>(true, response, "라이더 상태 조회 성공");
     }
 
     @Transactional
-    public void changeOnline(Long userId, OnlineRequest request) {
+    public ApiResponse<Void> setOnline(Long userId, RiderLocationRequest request) {
         Rider rider = riderRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
-        rider.updateLocation(request.lat(), request.lng());
-        rider.changeStatus(RiderStatus.ONLINE);
+                .orElseThrow(() -> new IllegalArgumentException("라이더 정보를 찾을 수 없습니다."));
+
+        rider.setOnline(request.lat(), request.lng());
+
+        return new ApiResponse<>(true, null, "라이더가 온라인 상태로 전환되었습니다.");
     }
 
     @Transactional
-    public void changeOffline(Long userId) {
+    public ApiResponse<Void> setOffline(Long userId) {
         Rider rider = riderRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
-        rider.changeStatus(RiderStatus.OFFLINE);
+                .orElseThrow(() -> new IllegalArgumentException("라이더 정보를 찾을 수 없습니다."));
+
+        rider.setOffline();
+
+        return new ApiResponse<>(true, null, "라이더가 오프라인 상태로 전환되었습니다.");
     }
 }

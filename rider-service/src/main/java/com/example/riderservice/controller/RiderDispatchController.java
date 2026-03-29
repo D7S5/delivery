@@ -29,12 +29,12 @@ public class RiderDispatchController {
         return "배차 거절 완료";
     }
 
-    @PutMapping("/orders/{orderReceiveId}/complete")
+    @PutMapping("/{assignmentId}/complete")
     public String complete(
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long orderReceiveId
+            @PathVariable Long assignmentId
     ) {
-        dispatchService.completeDelivery(userId, orderReceiveId);
+        dispatchService.completeDelivery(userId, assignmentId);
         return "배달 완료";
     }
 }

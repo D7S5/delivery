@@ -38,6 +38,22 @@ public class Rider {
         this.lastLocationUpdatedAt = LocalDateTime.now();
     }
 
+    public void setOnline(Double latitude, Double longitude) {
+        if (this.status == RiderStatus.DELIVERING) {
+            throw new IllegalStateException("배달 중에는 온라인 상태를 다시 변경할 수 없습니다.");
+        }
+        this.status = RiderStatus.ONLINE;
+        this.currentLat = latitude;
+        this.currentLng = longitude;
+    }
+
+    public void setOffline() {
+        if (this.status == RiderStatus.DELIVERING) {
+            throw new IllegalStateException("배달 중에는 오프라인으로 전환할 수 없습니다.");
+        }
+        this.status = RiderStatus.OFFLINE;
+    }
+
     public void changeStatus(RiderStatus status) {
         this.status = status;
     }

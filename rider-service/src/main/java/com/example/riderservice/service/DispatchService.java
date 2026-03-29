@@ -198,13 +198,16 @@ public class DispatchService {
     }
 //  배달 완료 처리
     @Transactional
-    public void completeDelivery(Long riderUserId, Long orderReceiveId) {
+    public void completeDelivery(Long riderUserId, Long assignmentId) {
         Rider rider = riderRepository.findByUserId(riderUserId)
                 .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
 
-        DeliveryAssignment assignment = deliveryAssignmentRepository
-                .findTopByOrderReceiveIdAndRiderIdOrderByIdDesc(orderReceiveId, rider.getId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 주문에 대한 배차가 없습니다."));
+        DeliveryAssignment assignment = deliveryAssignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new IllegalArgumentException("배차가 없습니다."));
+
+        if (!assignment.getRiderId().equals(rider.getId())) {
+            throw new IllegalStateException("본인 배차만 처리할 수 있습니다.");
+        }
 
         if (assignment.getStatus() != AssignmentStatus.ACCEPTED) {
             throw new IllegalStateException("수락된 배차만 완료 처리할 수 있습니다.");
@@ -212,7 +215,7 @@ public class DispatchService {
 
         rider.changeStatus(RiderStatus.ONLINE);
 
-//        storeOrderClient.completeDelivery(orderReceiveId);
+        storeOrderClient.completeDelivery(assignment.getOrderReceiveId());
         orderServiceClient.markComplete(assignment.getOrderId());
 
         DeliveryCompletedEvent event = new DeliveryCompletedEvent(
