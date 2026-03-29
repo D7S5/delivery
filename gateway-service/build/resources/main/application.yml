@@ -36,7 +36,7 @@ spring:
         - id: rider-service
           uri: http://localhost:8600
           predicates:
-            - Path="/api/rider/**
+            - Path=/api/rider/**
 
 jwt:
   secret: this-is-a-very-secret-key-for-delivery-project-auth-token

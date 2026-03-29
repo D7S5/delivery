@@ -1,5 +1,6 @@
 package com.example.riderservice.service;
 
+import com.example.riderservice.dto.OnlineRequest;
 import com.example.riderservice.dto.RiderLocationRequest;
 import com.example.riderservice.entity.Rider;
 import com.example.riderservice.entity.RiderStatus;
@@ -23,9 +24,10 @@ public class RiderService {
     }
 
     @Transactional
-    public void changeOnline(Long userId) {
+    public void changeOnline(Long userId, OnlineRequest request) {
         Rider rider = riderRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("라이더를 찾을 수 없습니다."));
+        rider.updateLocation(request.lat(), request.lng());
         rider.changeStatus(RiderStatus.ONLINE);
     }
 

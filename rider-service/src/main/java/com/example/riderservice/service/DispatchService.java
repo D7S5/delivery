@@ -4,6 +4,7 @@ import com.delivery.common.event.DeliveryCompletedEvent;
 import com.delivery.common.event.DeliveryStartedEvent;
 import com.delivery.common.event.OrderReadyForDeliveryEvent;
 import com.example.riderservice.client.OrderServiceClient;
+import com.example.riderservice.client.StoreOrderClient;
 import com.example.riderservice.entity.AssignmentStatus;
 import com.example.riderservice.entity.DeliveryAssignment;
 import com.example.riderservice.entity.Rider;
@@ -29,7 +30,7 @@ public class DispatchService {
     private final DeliveryAssignmentRepository deliveryAssignmentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OrderServiceClient orderServiceClient;
-    private final StoreOrderSyncService storeOrderSyncService;
+    private final StoreOrderClient storeOrderClient;
 
     // 배차 후보 찾는 로직
 
@@ -159,16 +160,16 @@ public class DispatchService {
             throw new IllegalStateException("본인 배차만 수락할 수 있습니다.");
         }
 
-        if (assignment.getExpiresAt().isBefore(LocalDateTime.now())) {
-            assignment.expire();
-            throw new IllegalStateException("배차 응답 시간이 지났습니다.");
-        }
+//        if (assignment.getExpiresAt().isBefore(LocalDateTime.now())) {
+//            assignment.expire();
+//            throw new IllegalStateException("배차 응답 시간이 지났습니다.");
+//        }
 
         assignment.accept();
         rider.changeStatus(RiderStatus.DELIVERING);
 
-        storeOrderSyncService.startDelivery(assignment.getOrderReceiveId());
-        orderServiceClient.markDelivery(assignment.getOrderId());
+//        storeOrderClient.startDelivery(assignment.getOrderReceiveId());
+//        orderServiceClient.markDelivery(assignment.getOrderId());
 
         DeliveryStartedEvent event = new DeliveryStartedEvent(
                 assignment.getOrderId(),
@@ -210,7 +211,7 @@ public class DispatchService {
 
         rider.changeStatus(RiderStatus.ONLINE);
 
-        storeOrderSyncService.completeDelivery(orderReceiveId);
+        storeOrderClient.completeDelivery(orderReceiveId);
         orderServiceClient.markComplete(assignment.getOrderId());
 
         DeliveryCompletedEvent event = new DeliveryCompletedEvent(

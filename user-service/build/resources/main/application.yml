@@ -20,3 +20,6 @@ jwt:
   secret: this-is-a-very-secret-key-for-delivery-project-auth-token
   access-token-expiration: 100000
   refresh-token-expiration: 72000000
+
+rider-service:
+  url: http://localhost:8600

@@ -34,43 +34,43 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RiderServiceClient riderServiceClient;
 
-        @Transactional
-        public ApiResponse<SignupResponse> signup(SignupRequest request) {
-            if (userRepository.existsByEmail(request.email())) {
-                throw new IllegalArgumentException("이미 가입된 이메일입니다.");
-            }
+    @Transactional
+    public ApiResponse<SignupResponse> signup(SignupRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+        }
 
-            User user = User.builder()
-                    .email(request.email())
-                    .password(passwordEncoder.encode(request.password()))
-                    .name(request.name())
-                    .role(request.role())
-                    .createdAt(LocalDateTime.now())
-                    .build();
+        User user = User.builder()
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .name(request.name())
+                .role(request.role())
+                .createdAt(LocalDateTime.now())
+                .build();
 
-            User savedUser = userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-            if (savedUser.getRole() == UserRole.RIDER) {
-                var riderResponse = riderServiceClient.createRider(
-                        new CreateRiderClientRequest(
-                                savedUser.getId(),
-                                savedUser.getName()
-                        )
-                );
-
-                if (riderResponse == null || !riderResponse.isSuccess()) {
-                    throw new IllegalStateException("라이더 엔티티 생성에 실패했습니다.");
-                }
-            }
-
-            SignupResponse response = new SignupResponse(
-                    savedUser.getId(),
-                    savedUser.getEmail(),
-                    savedUser.getName(),
-                    savedUser.getRole()
+        if (savedUser.getRole() == UserRole.RIDER) {
+            var riderResponse = riderServiceClient.createRider(
+                    new CreateRiderClientRequest(
+                            savedUser.getId(),
+                            savedUser.getName()
+                    )
             );
 
-            return new ApiResponse<>(true, response, "회원가입 성공");
+            if (riderResponse == null || !riderResponse.isSuccess()) {
+                throw new IllegalStateException("라이더 엔티티 생성에 실패했습니다.");
+            }
+        }
+
+        SignupResponse response = new SignupResponse(
+                savedUser.getId(),
+                savedUser.getEmail(),
+                savedUser.getName(),
+                savedUser.getRole()
+        );
+
+        return new ApiResponse<>(true, response, "회원가입 성공");
     }
 
     public ApiResponse<LoginResponse> login(LoginRequest request, HttpServletResponse response) {

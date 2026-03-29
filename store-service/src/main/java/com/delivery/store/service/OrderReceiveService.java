@@ -101,8 +101,17 @@ public class OrderReceiveService {
         OrderReceive orderReceive = orderReceiveRepository.findById(orderReceiveId)
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
+        //store 1회 2회 3회
+
+        // 외부 서비스 성공 확인 먼저
+        ApiResponse<Void> response = orderClient.delivery(orderReceive.getOrderId());
+
+        if (response == null || !response.isSuccess()) {
+            throw new IllegalStateException("주문 서비스의 배달 시작 처리에 실패했습니다.");
+        }
+
+        // 그 다음 현재 서비스 상태 변경
         orderReceive.startDelivery();
-        orderClient.delivery(orderReceive.getOrderId());
 
         return new ApiResponse<>(true, null, "배달 상태로 변경되었습니다.");
     }
@@ -112,10 +121,15 @@ public class OrderReceiveService {
         OrderReceive orderReceive = orderReceiveRepository.findById(orderReceiveId)
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
-        orderReceive.complete();
-        orderClient.complete(orderReceive.getOrderId());
+        ApiResponse<Void> response = orderClient.complete(orderReceive.getOrderId());
 
-        return new ApiResponse<>(true, null, "배달이 완료되었습니다.");
+        if (response == null || !response.isSuccess()) {
+            throw new IllegalStateException("order-service 주문 완료 처리에 실패했습니다.");
+        }
+
+        orderReceive.complete();
+
+        return new ApiResponse<>(true, null, "주문 완료 처리되었습니다.");
     }
 
     @Transactional

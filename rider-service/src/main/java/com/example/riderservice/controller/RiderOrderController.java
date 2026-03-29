@@ -25,4 +25,12 @@ public class RiderOrderController {
     ) {
         return riderOrderQueryService.getAvailableOrders(riderUserId, role);
     }
+
+    @GetMapping("/my")
+    public ApiResponse<List<RiderAssignmentResponse>> getMyOrders(
+            @RequestHeader("X-User-Id") Long riderUserId,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        return riderOrderQueryService.getMyOrders(riderUserId, role);
+    }
 }

@@ -25,14 +25,14 @@ public class OrderReceiveInternalController {
         return new ApiResponse<>(true, OrderReceiveDetailResponse.from(orderReceive), "주문 조회 성공");
     }
 
-    @PatchMapping("/{orderReceiveId}/delivery")
+    @PutMapping("/{orderReceiveId}/delivery")
     public ApiResponse<Void> startDelivery(
             @PathVariable Long orderReceiveId
     ) {
         return orderReceiveService.startDeliveryByRider(orderReceiveId);
     }
 
-    @PatchMapping("/{orderReceiveId}/complete")
+    @PutMapping("/{orderReceiveId}/complete")
     public ApiResponse<Void> completeDelivery(
             @PathVariable Long orderReceiveId
     ) {

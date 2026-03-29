@@ -1,7 +1,6 @@
 server:
   port: 8600
 
-
 spring:
   application:
     name: rider-service

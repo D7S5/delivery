@@ -11,7 +11,7 @@ public class RiderDispatchController {
 
     private final DispatchService dispatchService;
 
-    @PatchMapping("/{assignmentId}/accept")
+    @PutMapping("/{assignmentId}/accept")
     public String accept(
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long assignmentId
@@ -20,7 +20,7 @@ public class RiderDispatchController {
         return "배차 수락 완료";
     }
 
-    @PatchMapping("/{assignmentId}/reject")
+    @PutMapping("/{assignmentId}/reject")
     public String reject(
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long assignmentId
@@ -29,7 +29,7 @@ public class RiderDispatchController {
         return "배차 거절 완료";
     }
 
-    @PatchMapping("/orders/{orderReceiveId}/complete")
+    @PutMapping("/orders/{orderReceiveId}/complete")
     public String complete(
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long orderReceiveId
