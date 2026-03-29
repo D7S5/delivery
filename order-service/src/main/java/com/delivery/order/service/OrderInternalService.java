@@ -40,7 +40,6 @@ public class OrderInternalService {
     public ApiResponse<Void> delivery(Long orderId) {
         Order order = getOrder(orderId);
 
-        System.out.println(order.getStatus());
         if (order.getStatus() != OrderStatus.READY_FOR_DELIVERY) {
             throw new IllegalArgumentException("배차 대기 상태에서만 배달 중으로 변경할 수 있습니다.");
         }

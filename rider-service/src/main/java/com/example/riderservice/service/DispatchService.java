@@ -168,8 +168,9 @@ public class DispatchService {
         assignment.accept();
         rider.changeStatus(RiderStatus.DELIVERING);
 
-//        storeOrderClient.startDelivery(assignment.getOrderReceiveId());
-//        orderServiceClient.markDelivery(assignment.getOrderId());
+        // 1회차
+        storeOrderClient.startDelivery(assignment.getOrderReceiveId());
+        orderServiceClient.markDelivery(assignment.getOrderId());
 
         DeliveryStartedEvent event = new DeliveryStartedEvent(
                 assignment.getOrderId(),
@@ -211,7 +212,7 @@ public class DispatchService {
 
         rider.changeStatus(RiderStatus.ONLINE);
 
-        storeOrderClient.completeDelivery(orderReceiveId);
+//        storeOrderClient.completeDelivery(orderReceiveId);
         orderServiceClient.markComplete(assignment.getOrderId());
 
         DeliveryCompletedEvent event = new DeliveryCompletedEvent(
