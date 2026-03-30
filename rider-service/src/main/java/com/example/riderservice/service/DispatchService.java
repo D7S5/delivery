@@ -165,7 +165,6 @@ public class DispatchService {
         assignment.accept();
         rider.changeStatus(RiderStatus.DELIVERING);
 
-        // 1회차
         storeOrderClient.startDelivery(assignment.getOrderReceiveId());
         orderServiceClient.markDelivery(assignment.getOrderId());
 
