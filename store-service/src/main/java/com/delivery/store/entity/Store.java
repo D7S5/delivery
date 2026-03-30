@@ -34,6 +34,9 @@ public class Store {
     @Column(nullable = false, length = 30)
     private String phoneNumber;
 
+    private Double storeLat;
+    private Double storeLng;
+
     @Column(nullable = false)
     private Integer minOrderAmount;
 
@@ -46,7 +49,8 @@ public class Store {
 
     @Builder
     public Store(Long ownerId, String ownerEmail, String name, String address,
-                 String phoneNumber, Integer minOrderAmount, StoreStatus status,
+                 String phoneNumber, Integer minOrderAmount,
+                 Double storeLat, Double storeLng, StoreStatus status,
                  LocalDateTime createdAt) {
         this.ownerId = ownerId;
         this.ownerEmail = ownerEmail;
@@ -54,14 +58,18 @@ public class Store {
         this.address = address;
         this.phoneNumber = phoneNumber;
         this.minOrderAmount = minOrderAmount;
+        this.storeLat = storeLat;
+        this.storeLng = storeLng;
         this.status = status;
         this.createdAt = createdAt;
     }
 
-    public void update(String name, String address, String phoneNumber, Integer minOrderAmount, StoreStatus status){
+    public void update(String name, String address, String phoneNumber, Double storeLat, Double storeLng, Integer minOrderAmount, StoreStatus status){
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
+        this.storeLat = storeLat;
+        this.storeLng = storeLng;
         this.minOrderAmount = minOrderAmount;
         this.status = status;
     }

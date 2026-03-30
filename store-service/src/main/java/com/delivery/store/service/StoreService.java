@@ -33,6 +33,8 @@ public class StoreService {
                 .address(request.address())
                 .phoneNumber(request.phoneNumber())
                 .minOrderAmount(request.minOrderAmount())
+                .storeLat(request.storeLat())
+                .storeLng(request.storeLng())
                 .status(StoreStatus.OPEN)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -81,6 +83,8 @@ public class StoreService {
                 request.name(),
                 request.address(),
                 request.phoneNumber(),
+                request.storeLat(),
+                request.storeLng(),
                 request.minOrderAmount(),
                 request.status()
         );

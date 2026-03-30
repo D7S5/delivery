@@ -18,6 +18,9 @@ public record CreateStoreRequest(
         @Size(max = 30, message = "전화번호는 30자 이하여야 합니다.")
         String phoneNumber,
 
+        Double storeLat,
+        Double storeLng,
+
         @Min(value = 0, message = "최소주문금액은 0 이상이어야 합니다.")
         Integer minOrderAmount
 ) {

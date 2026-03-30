@@ -1,10 +1,12 @@
 package com.delivery.order.service;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.order.dto.GetStatus;
 import com.delivery.order.entity.Order;
 import com.delivery.order.entity.OrderStatus;
 import com.delivery.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.shaded.com.google.protobuf.Api;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,9 +65,10 @@ public class OrderInternalService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, String> getStatus(Long orderId) {
+    public ApiResponse<GetStatus> getStatus(Long orderId) {
         Order order = getOrder(orderId);
-        return Map.of("status", order.getStatus().name());
+        GetStatus response = new GetStatus(order.getStatus().name());
+        return new ApiResponse<>(true, response, "상태 응답");
     }
 
     private Order getOrder(Long orderId) {

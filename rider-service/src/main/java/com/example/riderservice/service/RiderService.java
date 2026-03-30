@@ -50,4 +50,16 @@ public class RiderService {
 
         return new ApiResponse<>(true, null, "라이더가 오프라인 상태로 전환되었습니다.");
     }
+
+    public void updateLocation(Long userId, Double lat, Double lng) {
+        Rider rider = riderRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("라이더가 없습니다."));
+
+        if (rider.getStatus() == RiderStatus.OFFLINE) {
+            throw new IllegalArgumentException("오프라인 상태에서는 위치를 갱신할 수 없습니다.");
+        }
+
+        rider.updateLocation(lat, lng);
+    }
+
 }

@@ -2,6 +2,7 @@ package com.example.riderservice.controller;
 
 import com.delivery.common.ApiResponse;
 import com.example.riderservice.dto.RiderLocationRequest;
+import com.example.riderservice.dto.RiderLocationUpdateRequest;
 import com.example.riderservice.dto.RiderStatusResponse;
 import com.example.riderservice.service.RiderService;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,14 @@ public class RiderController {
             @RequestHeader("X-User-Id") Long userId
     ) {
         return riderService.setOffline(userId);
+    }
+
+    @PutMapping("/me/location")
+    public ApiResponse<Void> updateMyLocation(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody RiderLocationUpdateRequest request
+    ) {
+        riderService.updateLocation(userId, request.getLat(), request.getLng());
+        return new ApiResponse<>(true, null, "위치가 업데이트되었습니다.");
     }
 }

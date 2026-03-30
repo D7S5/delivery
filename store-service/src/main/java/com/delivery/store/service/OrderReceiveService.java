@@ -28,11 +28,18 @@ public class OrderReceiveService {
     public ApiResponse<List<OrderReceiveSummaryResponse>> getMyStoreOrders(Long userId, String role) {
         validateOwner(role);
 
-        Store store = storeRepository.findByOwnerId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+        List<Store> stores = storeRepository.findAllByOwnerId(userId);
+
+        if (stores.isEmpty()) {
+            throw new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다.");
+        }
+
+        List<Long> storeIds = stores.stream()
+                .map(Store::getId)
+                .toList();
 
         List<OrderReceiveSummaryResponse> responses = orderReceiveRepository
-                .findAllByStoreIdOrderByIdDesc(store.getId())
+                .findAllByStoreIdInOrderByIdDesc(storeIds)
                 .stream()
                 .map(OrderReceiveSummaryResponse::from)
                 .toList();
@@ -151,10 +158,17 @@ public class OrderReceiveService {
     }
 
     private OrderReceive getMyStoreOrder(Long userId, Long orderReceiveId) {
-        Store store = storeRepository.findByOwnerId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다."));
+        List<Store> stores = storeRepository.findAllByOwnerId(userId);
 
-        return orderReceiveRepository.findByIdAndStoreId(orderReceiveId, store.getId())
+        if (stores.isEmpty()) {
+            throw new IllegalArgumentException("내 가게 정보를 찾을 수 없습니다.");
+        }
+
+        List<Long> storeIds = stores.stream()
+                .map(Store::getId)
+                .toList();
+
+        return orderReceiveRepository.findByIdAndStoreIdIn(orderReceiveId, storeIds)
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
     }
 }

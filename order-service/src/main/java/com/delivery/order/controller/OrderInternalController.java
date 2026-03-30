@@ -1,6 +1,7 @@
 package com.delivery.order.controller;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.order.dto.GetStatus;
 import com.delivery.order.service.OrderInternalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +42,7 @@ public class OrderInternalController {
     }
 
     @GetMapping("/{orderId}/status")
-    public Map<String, String> getStatus(@PathVariable Long orderId) {
+    public ApiResponse<GetStatus> getStatus(@PathVariable Long orderId) {
         return service.getStatus(orderId);
     }
 }
