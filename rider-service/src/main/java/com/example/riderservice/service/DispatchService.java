@@ -11,16 +11,13 @@ import com.example.riderservice.entity.Rider;
 import com.example.riderservice.entity.RiderStatus;
 import com.example.riderservice.repository.DeliveryAssignmentRepository;
 import com.example.riderservice.repository.RiderRepository;
-import com.example.riderservice.util.DistanceUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -213,6 +210,7 @@ public class DispatchService {
             throw new IllegalStateException("수락된 배차만 완료 처리할 수 있습니다.");
         }
 
+        assignment.complete();
         rider.changeStatus(RiderStatus.ONLINE);
 
         storeOrderClient.completeDelivery(assignment.getOrderReceiveId());

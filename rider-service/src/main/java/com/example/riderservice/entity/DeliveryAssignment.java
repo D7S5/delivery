@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
@@ -55,6 +56,14 @@ public class DeliveryAssignment {
 
     public void expire() {
         this.status = AssignmentStatus.EXPIRED;
+        this.respondedAt = LocalDateTime.now();
+    }
+
+    public void complete() {
+        if (this.status != AssignmentStatus.ACCEPTED) {
+            throw new IllegalStateException("수락된 배차만 완료할 수 있습니다.");
+        }
+        this.status = AssignmentStatus.COMPLETED;
         this.respondedAt = LocalDateTime.now();
     }
 }
