@@ -34,13 +34,4 @@ public class OrderClient {
 
         return response.getData();
     }
-
-    public void markOrderPaid(Long orderId) {
-        restClientBuilder.build()
-                .put()
-                .uri(orderServiceBaseUrl + "/api/orders/{orderId}/paid", orderId)
-                .header("X-Internal-Service-Token", internalServiceToken)
-                .retrieve()
-                .toBodilessEntity();
-    }
 }

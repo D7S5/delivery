@@ -110,12 +110,6 @@ public class OrderReceiveService {
         OrderReceive orderReceive = orderReceiveRepository.findById(orderReceiveId)
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
-//        ApiResponse<Void> response = orderClient.complete(orderReceive.getOrderId());
-//
-//        if (response == null || !response.isSuccess()) {
-//            throw new IllegalStateException("order-service 주문 완료 처리에 실패했습니다.");
-//        }
-
         orderReceive.complete();
 
         return new ApiResponse<>(true, null, "주문 완료 처리되었습니다.");

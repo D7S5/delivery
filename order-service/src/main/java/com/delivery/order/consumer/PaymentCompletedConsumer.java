@@ -42,12 +42,10 @@ public class PaymentCompletedConsumer {
 
         if (processedEventRepository.existsByEventId(event.eventId())) {
             return;
-
         }
 
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
-
         order.markPaid();
 
         List<OrderItem> items = orderItemRepository.findByOrderId(event.orderId());

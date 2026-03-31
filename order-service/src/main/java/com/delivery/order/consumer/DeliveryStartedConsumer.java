@@ -27,6 +27,5 @@ public class DeliveryStartedConsumer {
 
         // 1회
         order.changeStatus(OrderStatus.DELIVERY);
-//        order.assignRider(event.riderId());
     }
 }

@@ -51,9 +51,6 @@ public class OrderService {
             throw new IllegalArgumentException("최소 주문 가능 금액은 " + store.minOrderAmount() + "입니다.");
         }
 
-        System.out.println("totalAmount = " + totalAmount);
-        System.out.println("minOrderAmount = " + store.minOrderAmount());
-
         Order order = Order.builder()
                 .customerId(customerId)
                 .customerEmail(customerEmail)
