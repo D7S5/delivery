@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -104,6 +103,15 @@ public class DispatchService {
         );
         System.out.println("========================" + riders);
 
+        for (Rider rider : riders) {
+            System.out.println(rider.getId());
+            System.out.println(rider.getCurrentLat());
+            System.out.println(rider.getCurrentLng());
+        }
+
+        System.out.println("storeLat() = " + event.storeLat());
+        System.out.println("storeLng() = " + event.storeLng());
+
         List<RiderDistance> candidates = riders.stream()
                 .filter(r -> r.getCurrentLat() != null && r.getCurrentLng() != null)
                 .map(r -> new RiderDistance(
@@ -119,6 +127,7 @@ public class DispatchService {
                 .sorted(Comparator.comparingDouble(rd -> rd.distanceKm))
                 .toList();
 
+        System.out.println(candidates);
         System.out.println("=====================" + candidates);
         for (RiderDistance candidate : candidates) {
             Rider rider = candidate.rider;
@@ -141,6 +150,7 @@ public class DispatchService {
                     .expiresAt(LocalDateTime.now().plusSeconds(30))
                     .build();
 
+            System.out.println(assignment);
             System.out.println("=================" + assignment);
 
             deliveryAssignmentRepository.save(assignment);

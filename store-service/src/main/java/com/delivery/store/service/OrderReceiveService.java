@@ -77,25 +77,17 @@ public class OrderReceiveService {
         validateOwner(role);
 
         OrderReceive orderReceive = getMyStoreOrder(userId, orderReceiveId);
-        System.out.println("1. 조회 성공");
-        System.out.println("2. 상태 변경 전 = " + orderReceive.getStatus());
-
         orderReceive.markReadyForDelivery();
-        System.out.println("3. 상태 변경 후 = " + orderReceive.getStatus());
 
         try {
-            System.out.println("4. orderClient.ready 호출 직전");
             orderClient.ready(orderReceive.getOrderId());
-            System.out.println("5. orderClient.ready 호출 직후");
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
 
         try {
-            System.out.println("6. publish 호출 직전");
             orderReadyForDeliveryProducer.publish(orderReceive);
-            System.out.println("7. publish 호출 직후");
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -108,17 +100,6 @@ public class OrderReceiveService {
         OrderReceive orderReceive = orderReceiveRepository.findById(orderReceiveId)
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
-
-        // 1회차
-
-        // 외부 서비스 성공 확인 먼저
-//        ApiResponse<Void> response = orderClient.delivery(orderReceive.getOrderId());
-//
-//        if (response == null || !response.isSuccess()) {
-//            throw new IllegalStateException("주문 서비스의 배달 시작 처리에 실패했습니다.");
-//        }
-
-        // store 상태 변경
         orderReceive.startDelivery();
 
         return new ApiResponse<>(true, null, "배달 상태로 변경되었습니다.");
@@ -168,7 +149,12 @@ public class OrderReceiveService {
                 .map(Store::getId)
                 .toList();
 
-        return orderReceiveRepository.findByIdAndStoreIdIn(orderReceiveId, storeIds)
+        OrderReceive response = orderReceiveRepository.findByIdAndStoreIdIn(orderReceiveId, storeIds)
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
+
+//        response.getStoreLat();
+//        response.getStoreLng();
+
+        return response;
     }
 }

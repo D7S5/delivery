@@ -43,8 +43,7 @@ public class Rider {
             throw new IllegalStateException("배달 중에는 온라인 상태를 다시 변경할 수 없습니다.");
         }
         this.status = RiderStatus.ONLINE;
-        this.currentLat = latitude;
-        this.currentLng = longitude;
+        updateLocation(latitude, longitude);
     }
 
     public void setOffline() {

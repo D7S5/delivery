@@ -17,6 +17,7 @@ public class OrderReadyForDeliveryConsumer {
             groupId = "rider-service"
     )
     public void consume(OrderReadyForDeliveryEvent event) {
+        System.out.println("============dispatch============");
         dispatchService.dispatch(event);
     }
 }
