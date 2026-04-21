@@ -145,10 +145,6 @@ public class OrderReceiveService {
 
         OrderReceive response = orderReceiveRepository.findByIdAndStoreIdIn(orderReceiveId, storeIds)
                 .orElseThrow(() -> new IllegalArgumentException("내 가게 주문이 아니거나 주문이 존재하지 않습니다."));
-
-//        response.getStoreLat();
-//        response.getStoreLng();
-
         return response;
     }
 }
