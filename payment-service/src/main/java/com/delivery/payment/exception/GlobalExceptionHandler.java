@@ -1,6 +1,7 @@
 package com.delivery.payment.exception;
 
 import com.delivery.common.ApiResponse;
+import com.delivery.payment.gateway.PaymentGatewayException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -27,6 +28,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse<>(false, null, message));
+    }
+
+    @ExceptionHandler(PaymentGatewayException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentGatewayException(PaymentGatewayException e) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(new ApiResponse<>(false, null, e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

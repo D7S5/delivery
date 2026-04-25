@@ -4,6 +4,7 @@ import com.delivery.common.ApiResponse;
 import com.delivery.payment.dto.CreatePaymentRequest;
 import com.delivery.payment.dto.PaymentDetailResponse;
 import com.delivery.payment.dto.PaymentSummaryResponse;
+import com.delivery.payment.dto.TossPaymentCheckoutResponse;
 import com.delivery.payment.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,15 @@ import java.util.List;
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    @GetMapping("/orders/{orderId}/checkout")
+    public ApiResponse<TossPaymentCheckoutResponse> getCheckoutInfo(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @PathVariable Long orderId
+    ) {
+        return paymentService.getCheckoutInfo(userId, role, orderId);
+    }
 
     @PostMapping
     public ApiResponse<PaymentDetailResponse> createPayment(

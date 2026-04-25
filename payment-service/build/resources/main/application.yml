@@ -33,3 +33,13 @@ internal:
 
 outbox:
   payment-completed-topic: payment.completed
+
+payment:
+  gateway:
+    mode: toss
+    base-url: https://api.tosspayments.com
+    approve-path: /v1/payments/confirm
+    client-key:
+    secret-key:
+    success-url:
+    fail-url:

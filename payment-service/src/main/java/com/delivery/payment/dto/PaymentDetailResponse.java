@@ -12,9 +12,15 @@ public record PaymentDetailResponse(
         Long customerId,
         String customerEmail,
         Integer amount,
+        String merchantOrderId,
+        String paymentKey,
         PaymentMethod paymentMethod,
         PaymentStatus paymentStatus,
-        LocalDateTime createdAt
+        String provider,
+        String providerTransactionId,
+        String failureReason,
+        LocalDateTime createdAt,
+        LocalDateTime approvedAt
 ) {
     public static PaymentDetailResponse from(Payment payment) {
         return new PaymentDetailResponse(
@@ -23,9 +29,15 @@ public record PaymentDetailResponse(
                 payment.getCustomerId(),
                 payment.getCustomerEmail(),
                 payment.getAmount(),
+                payment.getMerchantOrderId(),
+                payment.getPaymentKey(),
                 payment.getPaymentMethod(),
                 payment.getStatus(),
-                payment.getCreatedAt()
+                payment.getProvider(),
+                payment.getProviderTransactionId(),
+                payment.getFailureReason(),
+                payment.getCreatedAt(),
+                payment.getApprovedAt()
         );
     }
 }
