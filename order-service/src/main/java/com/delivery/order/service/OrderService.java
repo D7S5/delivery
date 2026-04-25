@@ -103,8 +103,7 @@ public class OrderService {
         return new ApiResponse<>(true, orders, "내 주문 조회 성공");
     }
     public ApiResponse<OrderDetailResponse> getMyOrderDetail(Long customerId, Long orderId) {
-        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
-                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        Order order = getOrderIDAndCustomerId(orderId, customerId);
 
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 
@@ -130,8 +129,7 @@ public class OrderService {
     public ApiResponse<Void> cancelOrder(Long customerId, String role, Long orderId) {
         validateCustomer(role);
 
-        Order order = orderRepository.findByIdAndCustomerId(orderId, customerId)
-                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        Order order = getOrderIDAndCustomerId(orderId, customerId);
 
         order.cancel();
         return new ApiResponse<>(true, null, "주문 취소가 완료되었습니다.");
@@ -142,6 +140,10 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
     }
 
+    private Order getOrderIDAndCustomerId(Long orderId, Long customerId) {
+        return orderRepository.findByIdAndCustomerId(orderId, customerId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+    }
     private OrderDetailResponse toOrderDetailResponse(Order order, List<OrderItem> items) {
         return new OrderDetailResponse(
                 order.getId(),
