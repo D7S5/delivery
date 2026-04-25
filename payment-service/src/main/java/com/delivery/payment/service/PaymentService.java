@@ -33,7 +33,7 @@ public class PaymentService {
     private final OutboxRepository outboxRepository;
     private final OrderClient orderClient;
     private final ObjectMapper objectMapper;
-    private final PaymentGateway paymentGateway;
+    private final List<PaymentGateway> paymentGateways;
     private final TossPaymentsProperties tossPaymentsProperties;
 
     public ApiResponse<TossPaymentCheckoutResponse> getCheckoutInfo(Long userId, String role, Long orderId) {
@@ -90,10 +90,16 @@ public class PaymentService {
             throw new IllegalArgumentException("주문 금액과 결제 금액이 일치하지 않습니다.");
         }
 
+        PaymentMethod requestedPaymentMethod = resolveRequestedPaymentMethod(request);
+        validatePaymentRequest(request, requestedPaymentMethod);
+
         String merchantOrderId = createTossOrderId(order.orderId());
         if (!merchantOrderId.equals(request.tossOrderId())) {
-            throw new IllegalArgumentException("토스 주문번호가 올바르지 않습니다.");
+            throw new IllegalArgumentException("주문번호가 올바르지 않습니다.");
         }
+
+        PaymentGateway paymentGateway = selectPaymentGateway(requestedPaymentMethod);
+        String paymentKey = resolvePaymentKey(request, requestedPaymentMethod);
 
         Payment savedPayment;
         try {
@@ -103,8 +109,8 @@ public class PaymentService {
                     .customerEmail(order.customerEmail())
                     .amount(order.totalAmount())
                     .merchantOrderId(merchantOrderId)
-                    .paymentKey(request.paymentKey())
-                    .paymentMethod(PaymentMethod.UNKNOWN)
+                    .paymentKey(paymentKey)
+                    .paymentMethod(requestedPaymentMethod)
                     .status(PaymentStatus.PENDING)
                     .provider(paymentGateway.providerName())
                     .createdAt(LocalDateTime.now())
@@ -121,7 +127,9 @@ public class PaymentService {
                 order.customerEmail(),
                 order.totalAmount(),
                 merchantOrderId,
-                request.paymentKey()
+                request.paymentKey(),
+                request.kakaoTid(),
+                request.kakaoPgToken()
         ));
 
         if (!gatewayResult.approved()) {
@@ -180,6 +188,44 @@ public class PaymentService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private PaymentMethod resolveRequestedPaymentMethod(CreatePaymentRequest request) {
+        return request.paymentMethod() != null ? request.paymentMethod() : PaymentMethod.CARD;
+    }
+
+    private void validatePaymentRequest(CreatePaymentRequest request, PaymentMethod paymentMethod) {
+        switch (paymentMethod) {
+            case CARD -> {
+                if (isBlank(request.paymentKey())) {
+                    throw new IllegalArgumentException("카드 결제는 토스 paymentKey가 필수입니다.");
+                }
+            }
+            case KAKAO_PAY -> {
+                if (isBlank(request.kakaoTid())) {
+                    throw new IllegalArgumentException("카카오페이 결제는 tid가 필수입니다.");
+                }
+                if (isBlank(request.kakaoPgToken())) {
+                    throw new IllegalArgumentException("카카오페이 결제는 pg_token이 필수입니다.");
+                }
+            }
+            default -> throw new IllegalArgumentException("지원하지 않는 결제 수단입니다.");
+        }
+    }
+
+    private PaymentGateway selectPaymentGateway(PaymentMethod paymentMethod) {
+        return paymentGateways.stream()
+                .filter(gateway -> gateway.supports(paymentMethod))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(paymentMethod + " 결제 게이트웨이가 설정되지 않았습니다."));
+    }
+
+    private String resolvePaymentKey(CreatePaymentRequest request, PaymentMethod paymentMethod) {
+        if (paymentMethod == PaymentMethod.KAKAO_PAY) {
+            return request.kakaoTid() + ":" + request.kakaoPgToken();
+        }
+
+        return request.paymentKey();
     }
 
     private void publishPaymentCompleted(Payment payment) {

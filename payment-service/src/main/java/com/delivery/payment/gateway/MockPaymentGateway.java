@@ -24,6 +24,11 @@ public class MockPaymentGateway implements PaymentGateway {
         return "TOSS_PAYMENTS";
     }
 
+    @Override
+    public boolean supports(PaymentMethod paymentMethod) {
+        return paymentMethod == PaymentMethod.CARD || paymentMethod == PaymentMethod.KAKAO_PAY;
+    }
+
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }

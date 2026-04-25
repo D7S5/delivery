@@ -43,3 +43,9 @@ payment:
     secret-key:
     success-url:
     fail-url:
+  kakao-pay:
+    enabled: false
+    base-url: https://open-api.kakaopay.com
+    approve-path: /online/v1/payment/approve
+    cid: TC0ONETIME
+    secret-key:

@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,7 +54,7 @@ class PaymentServiceTest {
                 outboxRepository,
                 orderClient,
                 new ObjectMapper(),
-                paymentGateway,
+                List.of(paymentGateway),
                 new TossPaymentsProperties(
                         "toss",
                         "https://api.tosspayments.com",
@@ -106,6 +107,7 @@ class PaymentServiceTest {
         when(orderClient.getOrder(10L)).thenReturn(new OrderInternalResponse(
                 10L, 1L, "user@test.com", 3L, "store", 18000, "CREATED"
         ));
+        when(paymentGateway.supports(PaymentMethod.CARD)).thenReturn(true);
         when(paymentGateway.providerName()).thenReturn("MOCK");
         when(paymentGateway.approve(any())).thenReturn(
                 PaymentGatewayResult.approved("tx-123", LocalDateTime.of(2026, 4, 25, 10, 0), PaymentMethod.CARD)
@@ -137,6 +139,7 @@ class PaymentServiceTest {
         when(orderClient.getOrder(11L)).thenReturn(new OrderInternalResponse(
                 11L, 1L, "user@test.com", 3L, "store", 21000, "CREATED"
         ));
+        when(paymentGateway.supports(PaymentMethod.CARD)).thenReturn(true);
         when(paymentGateway.providerName()).thenReturn("MOCK");
         when(paymentGateway.approve(any())).thenReturn(
                 PaymentGatewayResult.failed("한도 초과")
@@ -162,6 +165,7 @@ class PaymentServiceTest {
         when(orderClient.getOrder(12L)).thenReturn(new OrderInternalResponse(
                 12L, 1L, "user@test.com", 3L, "store", 22000, "CREATED"
         ));
+        when(paymentGateway.supports(PaymentMethod.KAKAO_PAY)).thenReturn(true);
         when(paymentGateway.providerName()).thenReturn("MOCK");
         when(paymentGateway.approve(any())).thenReturn(
                 PaymentGatewayResult.approved("tx-789", LocalDateTime.of(2026, 4, 25, 11, 0), PaymentMethod.KAKAO_PAY)
@@ -176,7 +180,15 @@ class PaymentServiceTest {
                 1L,
                 "user@test.com",
                 "CUSTOMER",
-                new CreatePaymentRequest(12L, "delivery-order-12", "payment-key-789", null)
+                new CreatePaymentRequest(
+                        12L,
+                        "delivery-order-12",
+                        null,
+                        PaymentMethod.KAKAO_PAY,
+                        "kakao-tid-789",
+                        "pg-token-789",
+                        null
+                )
         );
 
         assertThat(response.isSuccess()).isTrue();

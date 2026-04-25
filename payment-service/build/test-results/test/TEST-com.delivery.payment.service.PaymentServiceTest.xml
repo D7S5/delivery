@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.delivery.payment.service.PaymentServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-04-25T06:47:22" hostname="austin-750XGK" time="1.181">
+<testsuite name="com.delivery.payment.service.PaymentServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-04-25T07:23:25" hostname="austin-750XGK" time="1.224">
   <properties/>
-  <testcase name="createPaymentRequest_acceptsSnakeCasePaymentKeyAlias()" classname="com.delivery.payment.service.PaymentServiceTest" time="1.061"/>
-  <testcase name="createPaymentRequest_acceptsLowercasePaymentkeyAlias()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.004"/>
-  <testcase name="createPayment_publishesOutboxWhenGatewayApproves()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.102"/>
-  <testcase name="createPayment_usesOrderAmountWhenRequestAmountIsMissing()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.005"/>
-  <testcase name="createPayment_doesNotPublishOutboxWhenGatewayRejects()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.004"/>
+  <testcase name="createPaymentRequest_acceptsSnakeCasePaymentKeyAlias()" classname="com.delivery.payment.service.PaymentServiceTest" time="1.057"/>
+  <testcase name="createPaymentRequest_acceptsLowercasePaymentkeyAlias()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.009"/>
+  <testcase name="createPayment_publishesOutboxWhenGatewayApproves()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.138"/>
+  <testcase name="createPayment_usesOrderAmountWhenRequestAmountIsMissing()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.009"/>
+  <testcase name="createPayment_doesNotPublishOutboxWhenGatewayRejects()" classname="com.delivery.payment.service.PaymentServiceTest" time="0.005"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

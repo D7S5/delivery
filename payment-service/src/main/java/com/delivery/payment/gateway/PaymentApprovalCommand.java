@@ -6,6 +6,8 @@ public record PaymentApprovalCommand(
         String customerEmail,
         Integer amount,
         String merchantOrderId,
-        String paymentKey
+        String paymentKey,
+        String kakaoTid,
+        String kakaoPgToken
 ) {
 }

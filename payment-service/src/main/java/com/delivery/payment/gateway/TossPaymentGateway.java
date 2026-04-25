@@ -70,6 +70,11 @@ public class TossPaymentGateway implements PaymentGateway {
         return "TOSS_PAYMENTS";
     }
 
+    @Override
+    public boolean supports(PaymentMethod paymentMethod) {
+        return paymentMethod == PaymentMethod.CARD;
+    }
+
     private String createAuthorizationHeader() {
         String encoded = Base64.getEncoder().encodeToString((properties.secretKey() + ":").getBytes());
         return "Basic " + encoded;
