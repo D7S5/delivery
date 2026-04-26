@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_payments_order_id", columnNames = "order_id")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment {
@@ -83,6 +85,16 @@ public class Payment {
         this.providerTransactionId = providerTransactionId;
         this.failureReason = null;
         this.approvedAt = approvedAt;
+    }
+
+    public void prepareRetry(String paymentKey, PaymentMethod paymentMethod, String provider) {
+        this.paymentKey = paymentKey;
+        this.paymentMethod = paymentMethod;
+        this.provider = provider;
+        this.status = PaymentStatus.PENDING;
+        this.providerTransactionId = null;
+        this.failureReason = null;
+        this.approvedAt = null;
     }
 
     public void updatePaymentMethod(PaymentMethod paymentMethod) {

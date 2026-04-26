@@ -23,8 +23,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -107,12 +109,13 @@ class PaymentServiceTest {
         when(orderClient.getOrder(10L)).thenReturn(new OrderInternalResponse(
                 10L, 1L, "user@test.com", 3L, "store", 18000, "CREATED"
         ));
+        when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.empty());
         when(paymentGateway.supports(PaymentMethod.CARD)).thenReturn(true);
         when(paymentGateway.providerName()).thenReturn("MOCK");
         when(paymentGateway.approve(any())).thenReturn(
                 PaymentGatewayResult.approved("tx-123", LocalDateTime.of(2026, 4, 25, 10, 0), PaymentMethod.CARD)
         );
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
+        when(paymentRepository.saveAndFlush(any(Payment.class))).thenAnswer(invocation -> {
             Payment payment = invocation.getArgument(0);
             ReflectionTestUtils.setField(payment, "id", 99L);
             return payment;
@@ -139,12 +142,13 @@ class PaymentServiceTest {
         when(orderClient.getOrder(11L)).thenReturn(new OrderInternalResponse(
                 11L, 1L, "user@test.com", 3L, "store", 21000, "CREATED"
         ));
+        when(paymentRepository.findByOrderId(11L)).thenReturn(Optional.empty());
         when(paymentGateway.supports(PaymentMethod.CARD)).thenReturn(true);
         when(paymentGateway.providerName()).thenReturn("MOCK");
         when(paymentGateway.approve(any())).thenReturn(
                 PaymentGatewayResult.failed("한도 초과")
         );
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentRepository.saveAndFlush(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ApiResponse<PaymentDetailResponse> response = paymentService.createPayment(
                 1L,
@@ -165,12 +169,13 @@ class PaymentServiceTest {
         when(orderClient.getOrder(12L)).thenReturn(new OrderInternalResponse(
                 12L, 1L, "user@test.com", 3L, "store", 22000, "CREATED"
         ));
+        when(paymentRepository.findByOrderId(12L)).thenReturn(Optional.empty());
         when(paymentGateway.supports(PaymentMethod.KAKAO_PAY)).thenReturn(true);
         when(paymentGateway.providerName()).thenReturn("MOCK");
         when(paymentGateway.approve(any())).thenReturn(
                 PaymentGatewayResult.approved("tx-789", LocalDateTime.of(2026, 4, 25, 11, 0), PaymentMethod.KAKAO_PAY)
         );
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
+        when(paymentRepository.saveAndFlush(any(Payment.class))).thenAnswer(invocation -> {
             Payment payment = invocation.getArgument(0);
             ReflectionTestUtils.setField(payment, "id", 100L);
             return payment;
@@ -195,5 +200,82 @@ class PaymentServiceTest {
         assertThat(response.getData().amount()).isEqualTo(22000);
         assertThat(response.getData().paymentMethod()).isEqualTo(PaymentMethod.KAKAO_PAY);
         verify(outboxRepository).save(any());
+    }
+
+    @Test
+    void createPayment_reusesFailedPaymentForRetry() {
+        Payment failedPayment = Payment.builder()
+                .orderId(13L)
+                .customerId(1L)
+                .customerEmail("user@test.com")
+                .amount(23000)
+                .merchantOrderId("delivery-order-13")
+                .paymentKey("old-payment-key")
+                .paymentMethod(PaymentMethod.CARD)
+                .status(PaymentStatus.FAILED)
+                .provider("MOCK")
+                .failureReason("한도 초과")
+                .createdAt(LocalDateTime.of(2026, 4, 25, 9, 0))
+                .build();
+        ReflectionTestUtils.setField(failedPayment, "id", 101L);
+
+        when(paymentRepository.existsByOrderIdAndStatus(13L, PaymentStatus.COMPLETED)).thenReturn(false);
+        when(orderClient.getOrder(13L)).thenReturn(new OrderInternalResponse(
+                13L, 1L, "user@test.com", 3L, "store", 23000, "CREATED"
+        ));
+        when(paymentRepository.findByOrderId(13L)).thenReturn(Optional.of(failedPayment));
+        when(paymentGateway.supports(PaymentMethod.CARD)).thenReturn(true);
+        when(paymentGateway.providerName()).thenReturn("MOCK");
+        when(paymentRepository.saveAndFlush(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentGateway.approve(any())).thenReturn(
+                PaymentGatewayResult.approved("tx-retry", LocalDateTime.of(2026, 4, 25, 12, 0), PaymentMethod.CARD)
+        );
+
+        ApiResponse<PaymentDetailResponse> response = paymentService.createPayment(
+                1L,
+                "user@test.com",
+                "CUSTOMER",
+                new CreatePaymentRequest(13L, "delivery-order-13", "new-payment-key", 23000)
+        );
+
+        assertThat(response.getData().paymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(response.getData().providerTransactionId()).isEqualTo("tx-retry");
+        assertThat(response.getData().paymentKey()).isEqualTo("new-payment-key");
+        verify(outboxRepository).save(any());
+    }
+
+    @Test
+    void createPayment_rejectsWhenPaymentIsAlreadyPending() {
+        Payment pendingPayment = Payment.builder()
+                .orderId(14L)
+                .customerId(1L)
+                .customerEmail("user@test.com")
+                .amount(24000)
+                .merchantOrderId("delivery-order-14")
+                .paymentKey("payment-key-in-progress")
+                .paymentMethod(PaymentMethod.CARD)
+                .status(PaymentStatus.PENDING)
+                .provider("MOCK")
+                .createdAt(LocalDateTime.of(2026, 4, 25, 9, 0))
+                .build();
+
+        when(paymentRepository.existsByOrderIdAndStatus(14L, PaymentStatus.COMPLETED)).thenReturn(false);
+        when(orderClient.getOrder(14L)).thenReturn(new OrderInternalResponse(
+                14L, 1L, "user@test.com", 3L, "store", 24000, "CREATED"
+        ));
+        when(paymentRepository.findByOrderId(14L)).thenReturn(Optional.of(pendingPayment));
+        when(paymentGateway.supports(PaymentMethod.CARD)).thenReturn(true);
+        when(paymentGateway.providerName()).thenReturn("MOCK");
+
+        assertThatThrownBy(() -> paymentService.createPayment(
+                1L,
+                "user@test.com",
+                "CUSTOMER",
+                new CreatePaymentRequest(14L, "delivery-order-14", "another-payment-key", 24000)
+        )).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("이미 결제가 진행 중인 주문입니다.");
+
+        verify(paymentRepository, never()).saveAndFlush(any());
+        verify(paymentGateway, never()).approve(any());
     }
 }

@@ -55,6 +55,10 @@ public class TossPaymentGateway implements PaymentGateway {
 
             return PaymentGatewayResult.approved(transactionKey, approvedAt, resolvePaymentMethod(response));
         } catch (RestClientResponseException e) {
+            if (e.getStatusCode().is5xxServerError()) {
+                throw new PaymentGatewayException("토스페이먼츠 승인 호출에 실패했습니다.", e);
+            }
+
             TossPaymentErrorResponse error = parseError(e.getResponseBodyAsString());
             String message = error != null && error.message() != null ? error.message() : "토스페이먼츠 승인 호출에 실패했습니다.";
             return PaymentGatewayResult.failed(message);

@@ -103,22 +103,18 @@ public class PaymentService {
 
         Payment savedPayment;
         try {
-            Payment payment = Payment.builder()
-                    .orderId(order.orderId())
-                    .customerId(order.customerId())
-                    .customerEmail(order.customerEmail())
-                    .amount(order.totalAmount())
-                    .merchantOrderId(merchantOrderId)
-                    .paymentKey(paymentKey)
-                    .paymentMethod(requestedPaymentMethod)
-                    .status(PaymentStatus.PENDING)
-                    .provider(paymentGateway.providerName())
-                    .createdAt(LocalDateTime.now())
-                    .build();
+            savedPayment = paymentRepository.findByOrderId(order.orderId())
+                    .map(existingPayment -> prepareExistingPaymentForRetry(
+                            existingPayment,
+                            paymentKey,
+                            requestedPaymentMethod,
+                            paymentGateway.providerName()
+                    ))
+                    .orElseGet(() -> createPendingPayment(order, merchantOrderId, paymentKey, requestedPaymentMethod, paymentGateway));
 
-            savedPayment = paymentRepository.save(payment);
+            savedPayment = paymentRepository.saveAndFlush(savedPayment);
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("이미 결제된 주문입니다.");
+            throw new IllegalArgumentException("이미 결제가 진행 중이거나 완료된 주문입니다.");
         }
 
         PaymentGatewayResult gatewayResult = paymentGateway.approve(new PaymentApprovalCommand(
@@ -218,6 +214,45 @@ public class PaymentService {
                 .filter(gateway -> gateway.supports(paymentMethod))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(paymentMethod + " 결제 게이트웨이가 설정되지 않았습니다."));
+    }
+
+    private Payment createPendingPayment(
+            OrderInternalResponse order,
+            String merchantOrderId,
+            String paymentKey,
+            PaymentMethod paymentMethod,
+            PaymentGateway paymentGateway
+    ) {
+        return Payment.builder()
+                .orderId(order.orderId())
+                .customerId(order.customerId())
+                .customerEmail(order.customerEmail())
+                .amount(order.totalAmount())
+                .merchantOrderId(merchantOrderId)
+                .paymentKey(paymentKey)
+                .paymentMethod(paymentMethod)
+                .status(PaymentStatus.PENDING)
+                .provider(paymentGateway.providerName())
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    private Payment prepareExistingPaymentForRetry(
+            Payment payment,
+            String paymentKey,
+            PaymentMethod paymentMethod,
+            String provider
+    ) {
+        if (payment.getStatus() == PaymentStatus.COMPLETED) {
+            throw new IllegalArgumentException("이미 결제된 주문입니다.");
+        }
+
+        if (payment.getStatus() == PaymentStatus.PENDING) {
+            throw new IllegalArgumentException("이미 결제가 진행 중인 주문입니다.");
+        }
+
+        payment.prepareRetry(paymentKey, paymentMethod, provider);
+        return payment;
     }
 
     private String resolvePaymentKey(CreatePaymentRequest request, PaymentMethod paymentMethod) {
